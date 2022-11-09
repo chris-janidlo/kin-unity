@@ -29,15 +29,12 @@ namespace kInvoke
 
         public static IntPtr GetLibraryPointer(string libraryName)
         {
-            if (!LibraryPointerCache.TryGetValue(libraryName, out var libraryPointer))
-            {
-                libraryPointer = LoadLibrary(libraryName);
+            if (LibraryPointerCache.TryGetValue(libraryName, out var libraryPointer)) return libraryPointer;
 
-                if (libraryPointer == IntPtr.Zero) throw new CannotLoadLibraryException(libraryName);
-                LibraryPointerCache[libraryName] = libraryPointer;
-            }
+            libraryPointer = LoadLibrary(libraryName);
+            if (libraryPointer == IntPtr.Zero) throw new CannotLoadLibraryException(libraryName);
 
-            return libraryPointer;
+            return LibraryPointerCache[libraryName] = libraryPointer;
         }
 
         public static TDelegate GetNativeFunction<TDelegate>(IntPtr libraryPointer)
