@@ -1,5 +1,5 @@
 using System.Collections;
-using Native;
+using kInvoke;
 using TMPro;
 using UnityEngine;
 
@@ -12,7 +12,7 @@ public class NativePluginTest : MonoBehaviour
         var i = 0;
         while (true)
         {
-            text.text = Plugin.Instance.Invoke<mul_by_5, int>(i++)
+            text.text = LibraryFunction<mul_by_5>.Invoke(i++)
                 .ToString();
             yield return new WaitForSeconds(1);
         }
@@ -20,5 +20,6 @@ public class NativePluginTest : MonoBehaviour
     }
 
     // ReSharper disable once InconsistentNaming
+    [LibraryImport("KinAI")]
     private delegate int mul_by_5(int i);
 }
