@@ -1,8 +1,8 @@
 using System;
 
-namespace Native.Exceptions
+namespace kInvoke.Exceptions
 {
-    public class CannotLoadLibraryException : NativeException
+    public class CannotLoadLibraryException : KInvokeException
     {
         public CannotLoadLibraryException()
         {

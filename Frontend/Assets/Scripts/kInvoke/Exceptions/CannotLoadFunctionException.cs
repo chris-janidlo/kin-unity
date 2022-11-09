@@ -1,8 +1,8 @@
 using System;
 
-namespace Native.Exceptions
+namespace kInvoke.Exceptions
 {
-    public class CannotLoadFunctionException : NativeException
+    public class CannotLoadFunctionException : KInvokeException
     {
         public CannotLoadFunctionException()
         {
