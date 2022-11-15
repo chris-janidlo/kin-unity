@@ -1,4 +1,4 @@
-Project Structure:
+# Structure
 
 * Frontend: Unity project for playing the game
 * AI: C++ source for Kin AI

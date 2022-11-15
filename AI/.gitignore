@@ -1,5 +1,8 @@
-# CMake build output:
+# CMake
+# intermediate build files:
 out/
+# final built artefacts:
+build/
 
 # Visual Studio config:
 .vs/
