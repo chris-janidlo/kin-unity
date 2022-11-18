@@ -12,21 +12,16 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable (
 	tests
-	
-	"KinAi/example.cpp"
-
-	"MonteCarloTreeSearch/example.cpp"
+	"Example.tests.cpp"	
 )
 
-target_link_libraries (tests PRIVATE MonteCarloTreeSearch)
-target_include_directories (tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../MonteCarloTreeSearch")
-
-target_link_libraries (tests PRIVATE KinAI)
-target_include_directories (tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../KinAI")
+# for ease of access to everything, just add every source code file to the tests executable:
+get_target_property (KinAISources KinAI SOURCES)
+target_sources (tests PRIVATE ${KinAISources})
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
-# TODO: necessary?
+# TODO: actually use CTest
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
 include(Catch)
