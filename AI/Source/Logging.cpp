@@ -20,9 +20,11 @@ namespace KinAI
 		const std::string home = getenv("USERPROFILE");
 		return home + R"(\AppData\LocalLow\crass_sandwich\Kin\)";
 #elif __APPLE__
-		return "~/Library/Logs/crass_sandwich/Kin/";
+		const std::string home = getenv("HOME");
+		return home + "/Library/Logs/crass_sandwich/Kin/";
 #elif __linux__
-		return "~/.config/unity3d/crass_sandwich/Kin/";
+		const std::string home = getenv("HOME");
+		return home + "/.config/unity3d/crass_sandwich/Kin/";
 #else
 		#error "Unknown compiler"
 #endif	
