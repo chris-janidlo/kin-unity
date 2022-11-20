@@ -15,10 +15,8 @@ add_executable (
 	"Example.tests.cpp"	
 )
 
-# for ease of access to everything, just add every source code file to the tests executable:
-get_target_property (KinAISources KinAI SOURCES)
-target_sources (tests PRIVATE ${KinAISources})
-# and include everything that KinAI includes:
+target_link_libraries (tests PRIVATE KinAI)
+# for ease of access to everything, include everything that KinAI includes:
 get_target_property (KinAIIncludes KinAI INCLUDE_DIRECTORIES)
 target_include_directories (tests PRIVATE ${KinAIIncludes})
 
