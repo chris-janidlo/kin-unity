@@ -65,5 +65,6 @@ sysinfo.txt
 ehthumbs.db
 Thumbs.db
 
-# Built AI DLLs
+# Built AI dynamic libraries
 /*.dll*
+/*.dylib*
