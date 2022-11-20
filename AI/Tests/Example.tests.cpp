@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
-#include "../Source/Example1.h"
-#include "../Source/Example2.h"
+#include "Example1.h"
+#include "Example2.h"
 
 TEST_CASE("Multiply")
 {
