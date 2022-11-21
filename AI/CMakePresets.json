@@ -65,8 +65,8 @@
         {
             "name": "unix",
             "generator": "Unix Makefiles",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
+            "binaryDir": "${sourceDir}/build/cmake_bin",
+            "installDir": "${sourceDir}/build/cmake_install",
             "condition": {
                 "type": "notEquals",
                 "lhs": "${hostSystemName}",
