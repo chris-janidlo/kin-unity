@@ -5,6 +5,5 @@
 
 # Building
 
-For now, easiest build is opening Visual Studio in the `AI` directory, building everything there (Ctrl-Shift-B or Build->Rebuild All), opening `frontend` in the Unity Editor, and building the project there.
-
+TODO: building Frontend and AI with one button
 TODO: build automation
