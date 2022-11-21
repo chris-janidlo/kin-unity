@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using kInvoke.Exceptions;
 using UnityEditor;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-// TODO: https://www.jacksondunstan.com/articles/3945
 namespace kInvoke
 {
 #if UNITY_EDITOR
@@ -31,7 +30,7 @@ namespace kInvoke
         {
             if (LibraryPointerCache.TryGetValue(libraryName, out var libraryPointer)) return libraryPointer;
 
-            libraryPointer = LoadLibrary(libraryName);
+            libraryPointer = OpenLibraryCrossPlatform(libraryName);
             if (libraryPointer == IntPtr.Zero) throw new CannotLoadLibraryException(libraryName);
 
             return LibraryPointerCache[libraryName] = libraryPointer;
@@ -44,7 +43,7 @@ namespace kInvoke
 
             if (!FunctionPointerCache.TryGetValue(functionName, out var functionPointer))
             {
-                functionPointer = GetProcAddress(libraryPointer, functionName);
+                functionPointer = GetFunctionPointerCrossPlatform(libraryPointer, functionName);
 
                 if (functionPointer == IntPtr.Zero) throw new CannotLoadFunctionException(functionName);
                 FunctionPointerCache[functionName] = functionPointer;
@@ -53,14 +52,64 @@ namespace kInvoke
             return Marshal.GetDelegateForFunctionPointer<TDelegate>(functionPointer);
         }
 
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+        [DllImport("__Internal")]
+        private static extern IntPtr dlopen(string path, int flag);
+    
+        private static IntPtr OpenLibraryCrossPlatform(string path)
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            var extension = path.Split(".").Last();
+            if (extension != "dylib")
+            {
+                path += ".dylib";
+            }
+#endif
+            return dlopen(path, 0);
+        }
+
+        [DllImport("__Internal")]
+        private static extern int dlclose(IntPtr handle);
+
+        private static void CloseLibraryCrossPlatform(IntPtr pointer)
+        {
+            dlclose(pointer);
+        }
+    
+        [DllImport("__Internal")]
+        private static extern IntPtr dlsym(IntPtr handle, string symbolName);
+
+        private static IntPtr GetFunctionPointerCrossPlatform(IntPtr libraryPointer, string name)
+        {
+            return dlsym(libraryPointer, name);
+        }
+#elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern IntPtr LoadLibrary(string lpFileName);
+    
+        private static IntPtr OpenLibraryCrossPlatform(string path)
+        {
+            return LoadLibrary(path);
+        }
+
         [DllImport("kernel32", SetLastError = true)]
         private static extern bool FreeLibrary(IntPtr hModule);
 
-        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern IntPtr LoadLibrary(string lpFileName);
+        private static void CloseLibraryCrossPlatform(IntPtr pointer)
+        {
+            FreeLibrary(pointer);
+        }
 
         [DllImport("kernel32")]
         private static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+
+        private static IntPtr GetFunctionPointerCrossPlatform(IntPtr libraryPointer, string name)
+        {
+            return GetProcAddress(libraryPointer, name);
+        }
+#else
+        #error "Unsupported platform"
+#endif
 
 #if UNITY_EDITOR
         private static void Teardown(PlayModeStateChange playModeStateChange)
@@ -68,10 +117,9 @@ namespace kInvoke
             if (playModeStateChange != PlayModeStateChange.ExitingPlayMode) return;
 
             foreach (var pointer in LibraryPointerCache.Values)
-                FreeLibrary(pointer);
+                CloseLibraryCrossPlatform(pointer);
             EditorApplication.playModeStateChanged -= Teardown;
         }
 #endif // UNITY_EDITOR
     }
 }
-#endif // UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
