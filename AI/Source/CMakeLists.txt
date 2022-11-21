@@ -15,6 +15,7 @@ add_library (KinAI SHARED ${FILES})
 target_include_directories (KinAI PRIVATE "${KINAI_ROOT_DIR}")
 
 target_compile_definitions (KinAI PRIVATE _KINAI_COMPILING) # see InterfaceMacros.h
+set_target_properties (KinAI PROPERTIES PREFIX "") # don't prepend `lib` on systems like macOS
 
 # TODO: this project probably shouldn't be aware of the frontend's dependencies
 add_custom_command(TARGET KinAI POST_BUILD
