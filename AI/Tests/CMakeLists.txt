@@ -12,7 +12,7 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable (
 	tests
-	"Example.tests.cpp"	
+	"Node.tests.cpp"	
 )
 
 target_link_libraries (tests PRIVATE KinAI)

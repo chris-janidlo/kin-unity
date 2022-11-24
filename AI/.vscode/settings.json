@@ -1,0 +1,9 @@
+{
+	"cSpell.words": [
+		"mcts",
+		"spdlog"
+	],
+	"files.associations": {
+		"memory": "cpp"
+	}
+}

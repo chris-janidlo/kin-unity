@@ -2,14 +2,18 @@ cmake_minimum_required (VERSION 3.12)
 
 set ("KINAI_ROOT_DIR" "${PROJECT_SOURCE_DIR}/Source")
 
-set ("FILES"
+set ("BASE_FILES"
     "${KINAI_ROOT_DIR}/KinAI.h"
     "${KINAI_ROOT_DIR}/InterfaceMacros.h"
     "${KINAI_ROOT_DIR}/Logging.cpp" "${KINAI_ROOT_DIR}/Logging.h"
-
-    "${KINAI_ROOT_DIR}/Example1.cpp" "${KINAI_ROOT_DIR}/Example1.h"
-    "${KINAI_ROOT_DIR}/Example2.cpp" "${KINAI_ROOT_DIR}/Example2.h"
 )
+
+set ("MCTS_ROOT_DIR" "${KINAI_ROOT_DIR}/MCTS")
+set ("MCTS_FILES"
+    "${MCTS_ROOT_DIR}/Node.cpp" "${MCTS_ROOT_DIR}/Node.h"
+)
+
+set ("FILES" "${BASE_FILES}" "${MCTS_FILES}")
 
 add_library (KinAI SHARED ${FILES})
 target_include_directories (KinAI PRIVATE "${KINAI_ROOT_DIR}")
