@@ -1,0 +1,25 @@
+[tasks.copy-to-frontend]
+category = "KinAI Automation"
+script = '''
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	echo "TODO"
+	exit 1
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+	src_fname="libkin_ai.dylib"
+	dest_fname="KinAI.dylib"
+else
+	# assume Windows
+	src_fname="TODO"
+	dest_fname="KinAI.dll"
+fi
+
+cp -f "target/release/${src_fname}" "../Frontend/${dest_fname}"
+'''
+
+[tasks.build-to-frontend]
+category = "KinAI Automation"
+dependencies = [
+	"format",
+	"build-release",
+	"copy-to-frontend",
+]
