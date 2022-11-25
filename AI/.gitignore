@@ -1,2 +1,3 @@
-# Visual Studio config:
-.vs/
+/target
+
+# /Cargo.lock # explicitly not ignoring Cargo.lock since we're building binaries (DLL/dylib/so files), even though they're libraries
