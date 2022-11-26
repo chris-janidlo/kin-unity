@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using kInvoke.Exceptions;
+using UnityEngine;
 using UnityEditor;
 
 namespace kInvoke
@@ -60,11 +61,22 @@ namespace kInvoke
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             var extension = path.Split(".").Last();
-            if (extension != "dylib")
+            if (extension != "bundle")
             {
-                path += ".dylib";
+                path += ".bundle";
             }
 #endif
+#if UNITY_STANDALONE_OSX && !UNITY_EDITOR
+            // take advantage of the fact that `dlopen` searches the current working directory, which for macOS apps
+            //  should be the directory containing the running app
+            // given that, modify the path passed to `dlopen` to point inside the app bundle
+            // FIXME: there's probably a better way to get the name of the running app
+            var appName = Environment.CommandLine
+                .Split("/")
+                .Last(s => s.Contains(".app"));
+            path = $"{appName}/{path}";
+#endif
+            Debug.Log($"{nameof(OpenLibraryCrossPlatform)}, macOS: opening library at path {path}");
             return dlopen(path, 0);
         }
 
