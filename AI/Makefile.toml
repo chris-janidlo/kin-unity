@@ -1,21 +1,3 @@
-[tasks.copy-to-frontend]
-category = "KinAI Automation"
-script = '''
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-	echo "TODO"
-	exit 1
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-	src_fname="libkin_ai.dylib"
-	dest_fname="KinAI.bundle"
-else
-	# assume Windows
-	src_fname="TODO"
-	dest_fname="KinAI.dll"
-fi
-
-cp -f "target/release/${src_fname}" "../Frontend/${dest_fname}"
-'''
-
 [tasks.build-to-frontend]
 category = "KinAI Automation"
 dependencies = [
@@ -23,3 +5,14 @@ dependencies = [
 	"build-release",
 	"copy-to-frontend",
 ]
+
+[tasks.copy-to-frontend]
+category = "KinAI Automation"
+script_runner = "@duckscript"
+# platform overrides:
+[tasks.copy-to-frontend.windows]
+script = "exit 1"
+[tasks.copy-to-frontend.mac]
+script = "cp target/release/libkin_ai.dylib ../Frontend/KinAI.bundle"
+[tasks.copy-to-frontend.linux]
+script = "exit 1"
