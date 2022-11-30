@@ -11,7 +11,7 @@ category = "KinAI Automation"
 script_runner = "@duckscript"
 # platform overrides:
 [tasks.copy-to-frontend.windows]
-script = "exit 1"
+script = "cp target/release/kin_ai.dll ../Frontend/KinAI.dll"
 [tasks.copy-to-frontend.mac]
 script = "cp target/release/libkin_ai.dylib ../Frontend/KinAI.bundle"
 [tasks.copy-to-frontend.linux]
