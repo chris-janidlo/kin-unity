@@ -1,3 +1,18 @@
+[tasks.lint]
+category = "Development"
+dependencies = [
+    "clippy-fix",
+    "format",
+]
+
+[tasks.format]
+toolchain = "nightly"
+
+[tasks.clippy-fix]
+category = "Development"
+extend = "clippy"
+args = ["clippy", "--fix", "--allow-dirty", "--allow-staged"]
+
 [tasks.build-to-frontend]
 category = "KinAI Automation"
 dependencies = [
