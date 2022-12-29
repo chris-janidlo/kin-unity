@@ -2,13 +2,15 @@ use rand::{seq::IteratorRandom, thread_rng};
 
 pub trait GameState: PartialEq + Sized {
     type Move;
-
+    type Player: Copy;
     type MoveIterator: Iterator<Item = Self::Move>;
 
     fn initial_state() -> Self;
 
     // would prefer to use a return position `impl Trait` instead, but that isn't stable
     fn available_moves(&self) -> Self::MoveIterator;
+
+    fn next_to_play(&self) -> Self::Player;
 
     fn apply_move(&self, move_: Self::Move) -> Self;
 
@@ -18,5 +20,5 @@ pub trait GameState: PartialEq + Sized {
             .map(|move_| self.apply_move(move_))
     }
 
-    fn terminal_value(&self) -> Option<f32>;
+    fn terminal_value(&self, for_player: Self::Player) -> Option<f32>;
 }

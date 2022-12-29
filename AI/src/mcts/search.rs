@@ -87,13 +87,13 @@ where
         }
     }
 
-    fn rollout(&self, initial_state: T) -> f32 {
+    fn rollout(&self, initial_state: T, for_player: T::Player) -> f32 {
         let mut state = initial_state;
-        let mut value = state.terminal_value();
+        let mut value = state.terminal_value(for_player);
 
         while value.is_none() {
             state = state.default_policy(state.available_moves()).unwrap();
-            value = state.terminal_value();
+            value = state.terminal_value(for_player);
         }
 
         value.unwrap()
@@ -128,6 +128,24 @@ where
             })
             .unwrap()
     }
+
+    fn backup_negamax(&mut self, node_id: NodeId, mut score: f32) {
+        // would prefer a for loop over `node_id.ancestors`, but that seems to lead to a
+        // borrow conflict, due to needing to borrow the arena immutably in the iterator
+        // call and mutably in the call to modify the node. would like to try again and
+        // see if that borrow conflict can be worked around
+
+        let mut next = self.arena.get_mut(node_id);
+
+        while let Some(node) = next {
+            let data = node.get_mut();
+            data.score += score;
+            data.visits += 1;
+
+            score = -score;
+            next = node.parent().and_then(|id| self.arena.get_mut(id));
+        }
+    }
 }
 
 impl<T> MctsNode<T>
@@ -152,6 +170,7 @@ mod tests {
 
     impl GameState for MockGameState {
         type Move = i32;
+        type Player = bool;
         type MoveIterator = std::vec::IntoIter<Self::Move>;
 
         fn initial_state() -> Self {
@@ -159,16 +178,27 @@ mod tests {
         }
 
         fn available_moves(&self) -> Self::MoveIterator {
-            vec![1, 2, 3].into_iter()
+            vec![1, 3].into_iter()
+        }
+
+        fn next_to_play(&self) -> Self::Player {
+            // `true` plays on even numbers, `false` plays on odd
+            self % 2 == 0
         }
 
         fn apply_move(&self, move_: Self::Move) -> Self {
             self + move_
         }
 
-        fn terminal_value(&self) -> Option<f32> {
-            if *self >= 10 {
-                Some(*self as f32)
+        fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
+            let score = if for_player == self.next_to_play() {
+                *self as f32
+            } else {
+                -*self as f32
+            };
+
+            if score.abs() >= 10. {
+                Some(score)
             } else {
                 None
             }
@@ -307,7 +337,49 @@ mod tests {
     #[rstest]
     #[timeout(Duration::from_secs(1))]
     fn rollout_terminates(searcher: Searcher<MockGameState>) {
-        let terminal_value = searcher.rollout(MockGameState::initial_state());
-        assert!(terminal_value >= 10.);
+        let terminal_value = searcher.rollout(MockGameState::initial_state(), true);
+        assert!(terminal_value.abs() >= 10.);
+    }
+
+    #[rstest]
+    fn backup_negamax_backs_up(mut searcher: Searcher<MockGameState>) {
+        let node1 = random_node(&mut searcher, None);
+        let node2 = random_node(&mut searcher, Some(node1.1));
+        let node3 = random_node(&mut searcher, Some(node2.1));
+        let node4 = random_node(&mut searcher, Some(node3.1));
+
+        let score: f32 = rand::random();
+        searcher.backup_negamax(node4.1, score);
+
+        let get_score = |n: (MockGameState, NodeId)| searcher.node(n.1).score;
+
+        assert_eq!(get_score(node4), score);
+        assert_eq!(get_score(node3), -score);
+        assert_eq!(get_score(node2), score);
+        assert_eq!(get_score(node1), -score);
+    }
+
+    #[rstest]
+    fn backup_negamax_avoids_unrelated_nodes(mut searcher: Searcher<MockGameState>) {
+        let node1 = random_node(&mut searcher, None);
+        let node2 = random_node(&mut searcher, Some(node1.1));
+        let node3 = random_node(&mut searcher, Some(node2.1));
+        let node4 = random_node(&mut searcher, Some(node3.1));
+
+        let node_a = random_node(&mut searcher, Some(node1.1));
+        let node_a1 = random_node(&mut searcher, Some(node_a.1));
+        let node_b = random_node(&mut searcher, Some(node2.1));
+        let node_c = random_node(&mut searcher, Some(node3.1));
+        let node_d = random_node(&mut searcher, Some(node4.1));
+
+        searcher.backup_negamax(node4.1, rand::random());
+
+        let get_score = |n: (MockGameState, NodeId)| searcher.node(n.1).score;
+
+        assert_eq!(get_score(node_a), 0.);
+        assert_eq!(get_score(node_a1), 0.);
+        assert_eq!(get_score(node_b), 0.);
+        assert_eq!(get_score(node_c), 0.);
+        assert_eq!(get_score(node_d), 0.);
     }
 }
