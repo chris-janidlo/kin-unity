@@ -46,6 +46,12 @@ where
 
     pub fn search(&mut self, _starting_state: T) -> T::Move {
         todo!()
+		// create root node v_0 with state s_0 [call starting_tree]
+		// while within computational budget [will take iterations as parameter]
+		//		v_1 = tree_policy(v_0)
+		//		score = rollout(v_1) [rollout will repeatadly call default_policy method on GameState]
+		//		backup(score, v_1)
+		// return best_child
     }
 
     fn node(&self, id: NodeId) -> &MctsNode<T> {
