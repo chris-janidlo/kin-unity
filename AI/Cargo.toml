@@ -9,3 +9,4 @@ crate-type = ["cdylib"]
 [dependencies]
 indextree = { version = "4.5.0", features = ["serde", "deser"] }
 rand = "0.8.5"
+serde = { version = "1.0.152", features = ["derive"] }
