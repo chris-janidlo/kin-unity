@@ -87,6 +87,18 @@ where
         }
     }
 
+    fn rollout(&self, initial_state: T) -> f32 {
+        let mut state = initial_state;
+        let mut value = state.terminal_value();
+
+        while value.is_none() {
+            state = state.default_policy(state.available_moves()).unwrap();
+            value = state.terminal_value();
+        }
+
+        value.unwrap()
+    }
+
     /// effective_exploration_factor is also known as c (Browne et al 2012, p. 9)
     fn best_child(&self, parent: NodeId, effective_exploration_factor: f32) -> NodeId {
         let ucb1 = |id: &NodeId| {
@@ -130,7 +142,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use rstest::{fixture, rstest};
+    use std::time::Duration;
+
+    use rstest::*;
 
     use super::*;
 
@@ -150,6 +164,14 @@ mod tests {
 
         fn apply_move(&self, move_: Self::Move) -> Self {
             self + move_
+        }
+
+        fn terminal_value(&self) -> Option<f32> {
+            if *self >= 10 {
+                Some(*self as f32)
+            } else {
+                None
+            }
         }
     }
 
@@ -280,5 +302,12 @@ mod tests {
 
         assert_eq!(best_child_c_0, node_child_a);
         assert_eq!(best_child_c_1, node_child_b);
+    }
+
+    #[rstest]
+    #[timeout(Duration::from_secs(1))]
+    fn rollout_terminates(searcher: Searcher<MockGameState>) {
+        let terminal_value = searcher.rollout(MockGameState::initial_state());
+        assert!(terminal_value >= 10.);
     }
 }
