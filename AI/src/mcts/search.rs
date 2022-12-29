@@ -86,6 +86,46 @@ where
                 .new_node(MctsNode::empty_from_state(starting_state))
         }
     }
+
+    /// effective_exploration_factor is also known as c (Browne et al 2012, p. 9)
+    fn best_child(&self, parent: NodeId, effective_exploration_factor: f32) -> NodeId {
+        let ucb1 = |id: &NodeId| {
+            let parent = self.node(parent);
+            let child = self.node(*id);
+
+            let exploitation_term = child.score / child.visits_f();
+            let exploration_term = (2. * parent.visits_f().ln() / child.visits_f()).sqrt();
+
+            exploitation_term + effective_exploration_factor * exploration_term
+        };
+
+        parent
+            .children(&self.arena)
+            .max_by(|a, b| {
+                let a_val = ucb1(a);
+                let b_val = ucb1(b);
+
+                // `max_by` is slightly biased toward elements at the end. and while
+                // it's probably very unlikely that unwrapping to Equal by defualt has
+                // a major effect, any distortions would cause actions at the end of the
+                // iterator to be favored. if this becomes a problem, might want to
+                // unwrap to a random comparison by default
+                a_val
+                    .partial_cmp(&b_val)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .unwrap()
+    }
+}
+
+impl<T> MctsNode<T>
+where
+    T: GameState,
+{
+    #[inline]
+    pub fn visits_f(&self) -> f32 {
+        self.visits as f32
+    }
 }
 
 #[cfg(test)]
@@ -208,5 +248,42 @@ mod tests {
             .map(|id| searcher.node(id).game_state);
         assert_eq!(ancestors.next(), Some(other_data));
         assert_eq!(ancestors.next(), None);
+    }
+
+    #[test]
+    fn best_child_maximizes_ucb1() {
+        let mut searcher = mock_game_state_searcher();
+
+        // arbitrary values chosen so that child a has a higher UCB1 when
+        // effective_exploration_factor is set to 0, and child b is higher when
+        // effective_exploration_factor is set to 1
+        let parent: MctsNode<MockGameState> = MctsNode {
+            game_state: rand::random(),
+            score: -1.,
+            visits: 3,
+        };
+        let child_a: MctsNode<MockGameState> = MctsNode {
+            game_state: rand::random(),
+            score: 5.,
+            visits: 50,
+        };
+        let child_b: MctsNode<MockGameState> = MctsNode {
+            game_state: rand::random(),
+            score: 1.,
+            visits: 20,
+        };
+
+        let node_parent = searcher.arena.new_node(parent);
+
+        let node_child_a = searcher.arena.new_node(child_a);
+        node_parent.append(node_child_a, &mut searcher.arena);
+        let node_child_b = searcher.arena.new_node(child_b);
+        node_parent.append(node_child_b, &mut searcher.arena);
+
+        let best_child_c_0 = searcher.best_child(node_parent, 0.);
+        let best_child_c_1 = searcher.best_child(node_parent, 1.);
+
+        assert_eq!(best_child_c_0, node_child_a);
+        assert_eq!(best_child_c_1, node_child_b);
     }
 }
