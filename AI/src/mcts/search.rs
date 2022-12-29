@@ -130,6 +130,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use rstest::{fixture, rstest};
+
     use super::*;
 
     type MockGameState = i32;
@@ -151,7 +153,8 @@ mod tests {
         }
     }
 
-    fn mock_game_state_searcher() -> Searcher<MockGameState> {
+    #[fixture]
+    fn searcher() -> Searcher<MockGameState> {
         Searcher::new(SearchParameters {
             exploration_factor: 1.,
             search_iterations: 20,
@@ -172,20 +175,16 @@ mod tests {
         (state, node_id)
     }
 
-    #[test]
-    fn starting_tree_creates_new_tree() {
-        let mut searcher = mock_game_state_searcher();
-
+    #[rstest]
+    fn starting_tree_creates_new_tree(mut searcher: Searcher<MockGameState>) {
         let state: MockGameState = rand::random();
         let starting_tree = searcher.starting_tree(state);
 
         assert_eq!(searcher.node(starting_tree).game_state, state);
     }
 
-    #[test]
-    fn starting_tree_finds_old_tree_and_detaches() {
-        let mut searcher = mock_game_state_searcher();
-
+    #[rstest]
+    fn starting_tree_finds_old_tree_and_detaches(mut searcher: Searcher<MockGameState>) {
         let node_1 = random_node(&mut searcher, None);
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
         let node_1_1_1 = random_node(&mut searcher, Some(node_1_1.1));
@@ -218,10 +217,8 @@ mod tests {
         assert!(node_1_1_2.1.is_removed(&searcher.arena));
     }
 
-    #[test]
-    fn starting_tree_creates_new_if_children_dont_match() {
-        let mut searcher = mock_game_state_searcher();
-
+    #[rstest]
+    fn starting_tree_creates_new_if_children_dont_match(mut searcher: Searcher<MockGameState>) {
         let node_1 = random_node(&mut searcher, None);
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
         let node_1_2 = random_node(&mut searcher, Some(node_1.1));
@@ -250,10 +247,8 @@ mod tests {
         assert_eq!(ancestors.next(), None);
     }
 
-    #[test]
-    fn best_child_maximizes_ucb1() {
-        let mut searcher = mock_game_state_searcher();
-
+    #[rstest]
+    fn best_child_maximizes_ucb1(mut searcher: Searcher<MockGameState>) {
         // arbitrary values chosen so that child a has a higher UCB1 when
         // effective_exploration_factor is set to 0, and child b is higher when
         // effective_exploration_factor is set to 1
