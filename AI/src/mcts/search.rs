@@ -1,5 +1,6 @@
 use indextree::{Arena, NodeId};
 
+use super::SearchParameters;
 use crate::game_state::GameState;
 
 pub struct Searcher<T>
@@ -8,6 +9,7 @@ where
 {
     arena: Arena<MctsNode<T>>,
     previous_choice: Option<NodeId>,
+    parameters: SearchParameters,
 }
 
 #[derive(PartialEq, Debug)]
@@ -37,21 +39,22 @@ impl<T> Searcher<T>
 where
     T: GameState,
 {
-    pub fn new() -> Self {
+    pub fn new(parameters: SearchParameters) -> Self {
         Searcher {
             arena: Arena::new(),
             previous_choice: None,
+            parameters,
         }
     }
 
-    pub fn search(&mut self, _starting_state: T) -> T::Move {
+    pub fn search(&mut self, _starting_state: T, _parameters: SearchParameters) -> T::Move {
         todo!()
-		// create root node v_0 with state s_0 [call starting_tree]
-		// while within computational budget [will take iterations as parameter]
-		//		v_1 = tree_policy(v_0)
-		//		score = rollout(v_1) [rollout will repeatadly call default_policy method on GameState]
-		//		backup(score, v_1)
-		// return best_child
+        // create root node v_0 with state s_0 [call starting_tree]
+        // while within computational budget [will take iterations as parameter]
+        //		v_1 = tree_policy(v_0)
+        //		score = rollout(v_1) [rollout will repeatadly call default_policy method on GameState]
+        //		backup(score, v_1)
+        // return best_child
     }
 
     fn node(&self, id: NodeId) -> &MctsNode<T> {
@@ -108,6 +111,13 @@ mod tests {
         }
     }
 
+    fn mock_game_state_searcher() -> Searcher<MockGameState> {
+        Searcher::new(SearchParameters {
+            exploration_factor: 1.,
+            search_iterations: 20,
+        })
+    }
+
     fn random_node(
         searcher: &mut Searcher<MockGameState>,
         parent: Option<NodeId>,
@@ -124,7 +134,7 @@ mod tests {
 
     #[test]
     fn starting_tree_creates_new_tree() {
-        let mut searcher: Searcher<MockGameState> = Searcher::new();
+        let mut searcher = mock_game_state_searcher();
 
         let state: MockGameState = rand::random();
         let starting_tree = searcher.starting_tree(state);
@@ -134,7 +144,7 @@ mod tests {
 
     #[test]
     fn starting_tree_finds_old_tree_and_detaches() {
-        let mut searcher: Searcher<MockGameState> = Searcher::new();
+        let mut searcher = mock_game_state_searcher();
 
         let node_1 = random_node(&mut searcher, None);
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
@@ -170,7 +180,7 @@ mod tests {
 
     #[test]
     fn starting_tree_creates_new_if_children_dont_match() {
-        let mut searcher: Searcher<MockGameState> = Searcher::new();
+        let mut searcher = mock_game_state_searcher();
 
         let node_1 = random_node(&mut searcher, None);
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
