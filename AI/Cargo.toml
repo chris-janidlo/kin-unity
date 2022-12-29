@@ -5,3 +5,7 @@ edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
+
+[dependencies]
+indextree = { version = "4.5.0", features = ["serde", "deser"] }
+rand = "0.8.5"
