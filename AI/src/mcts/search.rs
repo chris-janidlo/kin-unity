@@ -44,7 +44,7 @@ where
         }
     }
 
-    pub fn search(&mut self, starting_state: T) -> T::Move {
+    pub fn search(&mut self, _starting_state: T) -> T::Move {
         todo!()
     }
 
@@ -59,17 +59,23 @@ where
                 .new_node(MctsNode::empty_from_state(starting_state));
         }
 
-        let prev = self.previous_root.unwrap();
+        let old_root = self.previous_root.unwrap();
 
-        let new_root = prev
+        let child_move = old_root
             .children(&self.arena)
-            .find(|id| self.node(*id).game_state == starting_state)
-            .unwrap();
+            .find(|id| self.node(*id).game_state == starting_state);
 
-        new_root.detach(&mut self.arena);
-        prev.remove_subtree(&mut self.arena);
+        if let Some(new_root) = child_move {
+            new_root.detach(&mut self.arena);
+            old_root.remove_subtree(&mut self.arena);
 
-        new_root
+            new_root
+        } else {
+            self.arena.clear();
+
+            self.arena
+                .new_node(MctsNode::empty_from_state(starting_state))
+        }
     }
 }
 
@@ -96,9 +102,17 @@ mod tests {
         }
     }
 
-    fn random_node(searcher: &mut Searcher<MockGameState>) -> (MockGameState, NodeId) {
+    fn random_node(
+        searcher: &mut Searcher<MockGameState>,
+        parent: Option<NodeId>,
+    ) -> (MockGameState, NodeId) {
         let state: MockGameState = rand::random();
         let node_id = searcher.arena.new_node(MctsNode::empty_from_state(state));
+
+        if let Some(parent_id) = parent {
+            parent_id.append(node_id, &mut searcher.arena);
+        }
+
         (state, node_id)
     }
 
@@ -116,30 +130,24 @@ mod tests {
     fn starting_tree_finds_old_tree_and_detaches() {
         let mut searcher: Searcher<MockGameState> = Searcher::new();
 
-        let node1 = random_node(&mut searcher);
-        let node1_1 = random_node(&mut searcher);
-        let node1_1_1 = random_node(&mut searcher);
-        let node1_1_2 = random_node(&mut searcher);
-        let node1_2 = random_node(&mut searcher);
-        let node1_2_1 = random_node(&mut searcher);
+        let node_1 = random_node(&mut searcher, None);
+        let node_1_1 = random_node(&mut searcher, Some(node_1.1));
+        let node_1_1_1 = random_node(&mut searcher, Some(node_1_1.1));
+        let node_1_1_2 = random_node(&mut searcher, Some(node_1_1.1));
+        let node_1_2 = random_node(&mut searcher, Some(node_1.1));
+        let node_1_2_1 = random_node(&mut searcher, Some(node_1_2.1));
 
-        searcher.previous_root = Some(node1.1);
+        searcher.previous_root = Some(node_1.1);
 
-        node1.1.append(node1_1.1, &mut searcher.arena);
-        node1.1.append(node1_2.1, &mut searcher.arena);
-        node1_1.1.append(node1_1_1.1, &mut searcher.arena);
-        node1_1.1.append(node1_1_2.1, &mut searcher.arena);
-        node1_2.1.append(node1_2_1.1, &mut searcher.arena);
-
-        let starting_tree = searcher.starting_tree(node1_2.0);
+        let starting_tree = searcher.starting_tree(node_1_2.0);
 
         let root_state = searcher.node(starting_tree).game_state;
-        assert_eq!(root_state, node1_2.0);
+        assert_eq!(root_state, node_1_2.0);
 
         let mut child_states = starting_tree
             .children(&searcher.arena)
             .map(|id| searcher.node(id).game_state);
-        assert_eq!(child_states.next(), Some(node1_2_1.0));
+        assert_eq!(child_states.next(), Some(node_1_2_1.0));
         assert_eq!(child_states.next(), None);
 
         let mut ancestors = starting_tree
@@ -148,9 +156,41 @@ mod tests {
         assert_eq!(ancestors.next(), Some(root_state));
         assert_eq!(ancestors.next(), None);
 
-        assert!(node1.1.is_removed(&searcher.arena));
-        assert!(node1_1.1.is_removed(&searcher.arena));
-        assert!(node1_1_1.1.is_removed(&searcher.arena));
-        assert!(node1_1_2.1.is_removed(&searcher.arena));
+        assert!(node_1.1.is_removed(&searcher.arena));
+        assert!(node_1_1.1.is_removed(&searcher.arena));
+        assert!(node_1_1_1.1.is_removed(&searcher.arena));
+        assert!(node_1_1_2.1.is_removed(&searcher.arena));
+    }
+
+    #[test]
+    fn starting_tree_creates_new_if_children_dont_match() {
+        let mut searcher: Searcher<MockGameState> = Searcher::new();
+
+        let node_1 = random_node(&mut searcher, None);
+        let node_1_1 = random_node(&mut searcher, Some(node_1.1));
+        let node_1_2 = random_node(&mut searcher, Some(node_1.1));
+
+        searcher.previous_root = Some(node_1.1);
+
+        let mut other_data: MockGameState = rand::random();
+        while other_data == node_1_1.0 || other_data == node_1_2.0 {
+            other_data = rand::random();
+        }
+
+        let starting_tree = searcher.starting_tree(other_data);
+
+        let root_state = searcher.node(starting_tree).game_state;
+        assert_eq!(root_state, other_data);
+
+        let mut child_states = starting_tree
+            .children(&searcher.arena)
+            .map(|id| searcher.node(id).game_state);
+        assert_eq!(child_states.next(), None);
+
+        let mut ancestors = starting_tree
+            .ancestors(&searcher.arena)
+            .map(|id| searcher.node(id).game_state);
+        assert_eq!(ancestors.next(), Some(other_data));
+        assert_eq!(ancestors.next(), None);
     }
 }
