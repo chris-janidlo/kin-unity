@@ -7,7 +7,7 @@ where
     T: GameState,
 {
     arena: Arena<MctsNode<T>>,
-    previous_root: Option<NodeId>,
+    previous_choice: Option<NodeId>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -40,7 +40,7 @@ where
     pub fn new() -> Self {
         Searcher {
             arena: Arena::new(),
-            previous_root: None,
+            previous_choice: None,
         }
     }
 
@@ -53,13 +53,13 @@ where
     }
 
     fn starting_tree(&mut self, starting_state: T) -> NodeId {
-        if self.previous_root.is_none() {
+        if self.previous_choice.is_none() {
             return self
                 .arena
                 .new_node(MctsNode::empty_from_state(starting_state));
         }
 
-        let old_root = self.previous_root.unwrap();
+        let old_root = self.previous_choice.unwrap();
 
         let child_move = old_root
             .children(&self.arena)
@@ -137,7 +137,7 @@ mod tests {
         let node_1_2 = random_node(&mut searcher, Some(node_1.1));
         let node_1_2_1 = random_node(&mut searcher, Some(node_1_2.1));
 
-        searcher.previous_root = Some(node_1.1);
+        searcher.previous_choice = Some(node_1.1);
 
         let starting_tree = searcher.starting_tree(node_1_2.0);
 
@@ -170,7 +170,7 @@ mod tests {
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
         let node_1_2 = random_node(&mut searcher, Some(node_1.1));
 
-        searcher.previous_root = Some(node_1.1);
+        searcher.previous_choice = Some(node_1.1);
 
         let mut other_data: MockGameState = rand::random();
         while other_data == node_1_1.0 || other_data == node_1_2.0 {
