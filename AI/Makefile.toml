@@ -16,7 +16,7 @@ args = ["clippy", "--fix", "--allow-dirty", "--allow-staged"]
 [tasks.build-to-frontend]
 category = "KinAI Automation"
 dependencies = [
-	"format",
+	"lint",
 	"build-release",
 	"copy-to-frontend",
 ]
