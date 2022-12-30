@@ -12,6 +12,7 @@ pub trait GameState: PartialEq + Sized {
     fn next_to_play(&self) -> Self::Player;
 
     fn apply_move(&self, move_: Self::Move) -> Self;
+    fn move_with_result(&self, result: &Self) -> Self::Move;
 
     fn default_policy(&self, moves: &mut impl Iterator<Item = Self::Move>) -> Option<Self> {
         moves
