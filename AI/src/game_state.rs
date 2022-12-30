@@ -7,14 +7,13 @@ pub trait GameState: PartialEq + Sized {
 
     fn initial_state() -> Self;
 
-    // would prefer to use a return position `impl Trait` instead, but that isn't stable
     fn available_moves(&self) -> Self::MoveIterator;
 
     fn next_to_play(&self) -> Self::Player;
 
     fn apply_move(&self, move_: Self::Move) -> Self;
 
-    fn default_policy(&self, moves: impl Iterator<Item = Self::Move>) -> Option<Self> {
+    fn default_policy(&self, moves: &mut impl Iterator<Item = Self::Move>) -> Option<Self> {
         moves
             .choose(&mut thread_rng())
             .map(|move_| self.apply_move(move_))
