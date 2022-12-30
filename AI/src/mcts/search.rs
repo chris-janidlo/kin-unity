@@ -49,14 +49,22 @@ where
         }
     }
 
-    pub fn search(&mut self, _starting_state: T, _parameters: SearchParameters) -> T::Move {
-        todo!()
-        // create root node v_0 with state s_0 [call starting_tree]
-        // while within computational budget [will take iterations as parameter]
-        //		v_1 = tree_policy(v_0)
-        //		score = rollout(v_1) [rollout will repeatadly call default_policy method on GameState]
-        //		backup(score, v_1)
-        // return best_child
+    pub fn search(&mut self, starting_state: T) -> T::Move {
+        let player = starting_state.next_to_play();
+        let root = self.starting_tree(starting_state);
+
+        for _ in 0..self.parameters.search_iterations {
+            let leaf = self.tree_policy(root);
+            let leaf_state = &self.node(leaf).game_state;
+            let score = Self::rollout(leaf_state, player);
+            self.backup_negamax(leaf, score);
+        }
+
+        let max_child = self.best_child(root, 0.);
+        self.previous_choice = Some(max_child);
+
+        let chosen_state = &self.node(max_child).game_state;
+        self.node(root).game_state.move_with_result(chosen_state)
     }
 
     fn node(&self, id: NodeId) -> &MctsNode<T> {
@@ -93,16 +101,19 @@ where
         }
     }
 
-    fn rollout(&self, initial_state: T, for_player: T::Player) -> f32 {
-        let mut state = initial_state;
-        let mut value = state.terminal_value(for_player);
-
-        while value.is_none() {
-            state = state.default_policy(&mut state.available_moves()).unwrap();
-            value = state.terminal_value(for_player);
+    fn rollout(initial_state: &T, for_player: T::Player) -> f32 {
+        // wanted to do this iteratively, but was fighting the borrow checker. hopefully
+        // we'll see some tail call optimization
+        if let Some(val) = initial_state.terminal_value(for_player) {
+            val
+        } else {
+            Self::rollout(
+                &initial_state
+                    .default_policy(&mut initial_state.available_moves())
+                    .unwrap(),
+                for_player,
+            )
         }
-
-        value.unwrap()
     }
 
     fn tree_policy(&mut self, node_id: NodeId) -> NodeId {
@@ -191,7 +202,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
+    use std::{f32::consts::FRAC_1_SQRT_2, time::Duration};
 
     use rand::Rng;
     use rstest::*;
@@ -222,6 +233,10 @@ mod tests {
             self + move_
         }
 
+        fn move_with_result(&self, result: &Self) -> Self::Move {
+            result - self
+        }
+
         fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
             let score = if for_player == self.next_to_play() {
                 *self as f32
@@ -240,7 +255,7 @@ mod tests {
     #[fixture]
     fn searcher() -> Searcher<MockGameState> {
         Searcher::new(SearchParameters {
-            exploration_factor: 1.,
+            exploration_factor: FRAC_1_SQRT_2,
             search_iterations: 20,
         })
     }
@@ -388,8 +403,8 @@ mod tests {
 
     #[rstest]
     #[timeout(Duration::from_secs(1))]
-    fn rollout_terminates(searcher: Searcher<MockGameState>) {
-        let terminal_value = searcher.rollout(MockGameState::initial_state(), true);
+    fn rollout_terminates() {
+        let terminal_value = Searcher::rollout(&MockGameState::initial_state(), true);
         assert!(terminal_value.abs() >= 10.);
     }
 
@@ -489,5 +504,37 @@ mod tests {
 
         let mut ancestors = tree_policy_result.ancestors(&searcher.arena).skip(1);
         assert!(ancestors.next().is_some());
+    }
+
+    #[rstest]
+    #[timeout(Duration::from_secs(1))]
+    pub fn search_terminates(mut searcher: Searcher<MockGameState>) {
+        searcher.search(MockGameState::initial_state());
+    }
+
+    #[rstest]
+    pub fn search_returns_legal_move(mut searcher: Searcher<MockGameState>) {
+        let move_ = searcher.search(MockGameState::initial_state());
+
+        let legal = MockGameState::initial_state()
+            .available_moves()
+            .any(|m| m == move_);
+        assert!(legal);
+    }
+
+    #[rstest]
+    pub fn search_remembers_something(mut searcher: Searcher<MockGameState>) {
+        searcher.search(MockGameState::initial_state());
+        assert!(searcher.previous_choice.is_some());
+    }
+
+    #[rstest]
+    pub fn search_remembers_correct_choice(mut searcher: Searcher<MockGameState>) {
+        let move_ = searcher.search(MockGameState::initial_state());
+
+        let chosen = searcher.node(searcher.previous_choice.unwrap());
+        let returned_game_state = MockGameState::initial_state().apply_move(move_);
+
+        assert_eq!(chosen.game_state, returned_game_state);
     }
 }
