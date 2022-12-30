@@ -20,6 +20,7 @@ where
     game_state: T,
     score: f32,
     visits: i32,
+    unexpanded_moves: T::MoveIterator,
 }
 
 impl<T> MctsNode<T>
@@ -28,6 +29,7 @@ where
 {
     pub fn empty_from_state(game_state: T) -> Self {
         MctsNode {
+            unexpanded_moves: game_state.available_moves(),
             game_state,
             score: 0.,
             visits: 0,
@@ -61,6 +63,10 @@ where
         self.arena.get(id).unwrap().get()
     }
 
+    fn node_mut(&mut self, id: NodeId) -> &mut MctsNode<T> {
+        self.arena.get_mut(id).unwrap().get_mut()
+    }
+
     fn starting_tree(&mut self, starting_state: T) -> NodeId {
         if self.previous_choice.is_none() {
             return self
@@ -92,15 +98,40 @@ where
         let mut value = state.terminal_value(for_player);
 
         while value.is_none() {
-            state = state.default_policy(state.available_moves()).unwrap();
+            state = state.default_policy(&mut state.available_moves()).unwrap();
             value = state.terminal_value(for_player);
         }
 
         value.unwrap()
     }
 
-    /// effective_exploration_factor is also known as c (Browne et al 2012, p. 9)
-    fn best_child(&self, parent: NodeId, effective_exploration_factor: f32) -> NodeId {
+    fn tree_policy(&mut self, node_id: NodeId) -> NodeId {
+        let mut parent = node_id;
+        let mut leaf = self.expand(parent);
+
+        while leaf.is_none() {
+            parent = self.best_child(parent, self.parameters.exploration_factor);
+            leaf = self.expand(parent);
+        }
+
+        leaf.unwrap()
+    }
+
+    fn expand(&mut self, node_id: NodeId) -> Option<NodeId> {
+        let node = self.node_mut(node_id);
+
+        node.game_state
+            .default_policy(&mut node.unexpanded_moves)
+            .map(|game_state| {
+                let child = self.arena.new_node(MctsNode::empty_from_state(game_state));
+                node_id.append(child, &mut self.arena);
+
+                child
+            })
+    }
+
+    /// exploration_factor is also known as c (Browne et al 2012, p. 9)
+    fn best_child(&self, parent: NodeId, exploration_factor: f32) -> NodeId {
         let ucb1 = |id: &NodeId| {
             let parent = self.node(parent);
             let child = self.node(*id);
@@ -108,7 +139,7 @@ where
             let exploitation_term = child.score / child.visits_f();
             let exploration_term = (2. * parent.visits_f().ln() / child.visits_f()).sqrt();
 
-            exploitation_term + effective_exploration_factor * exploration_term
+            exploitation_term + exploration_factor * exploration_term
         };
 
         parent
@@ -162,6 +193,7 @@ where
 mod tests {
     use std::time::Duration;
 
+    use rand::Rng;
     use rstest::*;
 
     use super::*;
@@ -225,6 +257,30 @@ mod tests {
         }
 
         (state, node_id)
+    }
+
+    fn random_node_with_mcts_data(
+        searcher: &mut Searcher<MockGameState>,
+        parent: Option<NodeId>,
+    ) -> (MockGameState, NodeId) {
+        let state: MockGameState = rand::random();
+        let node_id = searcher.arena.new_node(MctsNode {
+            game_state: state,
+            score: rand::thread_rng().gen_range(-12.0..12.0),
+            visits: rand::thread_rng().gen_range(1..100),
+            unexpanded_moves: state.available_moves(),
+        });
+
+        if let Some(parent_id) = parent {
+            parent_id.append(node_id, &mut searcher.arena);
+        }
+
+        (state, node_id)
+    }
+
+    fn consume_unexpanded_moves(searcher: &mut Searcher<MockGameState>, node_id: NodeId) {
+        let moves = &mut searcher.node_mut(node_id).unexpanded_moves;
+        moves.for_each(drop);
     }
 
     #[rstest]
@@ -304,21 +360,17 @@ mod tests {
         // arbitrary values chosen so that child a has a higher UCB1 when
         // effective_exploration_factor is set to 0, and child b is higher when
         // effective_exploration_factor is set to 1
-        let parent: MctsNode<MockGameState> = MctsNode {
-            game_state: rand::random(),
-            score: -1.,
-            visits: 3,
-        };
-        let child_a: MctsNode<MockGameState> = MctsNode {
-            game_state: rand::random(),
-            score: 5.,
-            visits: 50,
-        };
-        let child_b: MctsNode<MockGameState> = MctsNode {
-            game_state: rand::random(),
-            score: 1.,
-            visits: 20,
-        };
+        let mut parent: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        parent.score = -1.;
+        parent.visits = 3;
+
+        let mut child_a: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        child_a.score = 5.;
+        child_a.visits = 50;
+
+        let mut child_b: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        child_b.score = 1.;
+        child_b.visits = 20;
 
         let node_parent = searcher.arena.new_node(parent);
 
@@ -381,5 +433,61 @@ mod tests {
         assert_eq!(get_score(node_b), 0.);
         assert_eq!(get_score(node_c), 0.);
         assert_eq!(get_score(node_d), 0.);
+    }
+
+    #[rstest]
+    fn expand_finds_node_to_expand(mut searcher: Searcher<MockGameState>) {
+        let node = random_node(&mut searcher, None);
+
+        let expanded = searcher.expand(node.1);
+
+        assert!(expanded.is_some());
+        assert_ne!(expanded.unwrap(), node.1);
+    }
+
+    #[rstest]
+    fn expand_returns_none_if_node_is_fully_expanded(mut searcher: Searcher<MockGameState>) {
+        let node = random_node(&mut searcher, None);
+
+        consume_unexpanded_moves(&mut searcher, node.1);
+
+        let expanded = searcher.expand(node.1);
+
+        assert!(expanded.is_none());
+    }
+
+    #[rstest]
+    fn tree_policy_can_expand(mut searcher: Searcher<MockGameState>) {
+        let node_1 = random_node(&mut searcher, None);
+
+        let tree_policy_result = searcher.tree_policy(node_1.1);
+
+        let mut children = tree_policy_result.children(&searcher.arena);
+        assert!(children.next().is_none());
+
+        let mut ancestors = tree_policy_result.ancestors(&searcher.arena).skip(1);
+        assert!(ancestors.next().is_some());
+    }
+
+    #[rstest]
+    fn tree_policy_finds_leaf(mut searcher: Searcher<MockGameState>) {
+        let node_1 = random_node_with_mcts_data(&mut searcher, None);
+        let node_1_1 = random_node_with_mcts_data(&mut searcher, Some(node_1.1));
+        let node_1_2 = random_node_with_mcts_data(&mut searcher, Some(node_1.1));
+        let _leaf_1_1_1 = random_node_with_mcts_data(&mut searcher, Some(node_1_1.1));
+        let _leaf_1_1_2 = random_node_with_mcts_data(&mut searcher, Some(node_1_1.1));
+        let _leaf_1_2_1 = random_node_with_mcts_data(&mut searcher, Some(node_1_2.1));
+
+        consume_unexpanded_moves(&mut searcher, node_1.1);
+        consume_unexpanded_moves(&mut searcher, node_1_1.1);
+        consume_unexpanded_moves(&mut searcher, node_1_2.1);
+
+        let tree_policy_result = searcher.tree_policy(node_1.1);
+
+        let mut children = tree_policy_result.children(&searcher.arena);
+        assert!(children.next().is_none());
+
+        let mut ancestors = tree_policy_result.ancestors(&searcher.arena).skip(1);
+        assert!(ancestors.next().is_some());
     }
 }
