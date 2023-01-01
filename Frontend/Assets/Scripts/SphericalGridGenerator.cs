@@ -27,8 +27,8 @@ public class SphericalGridGenerator : MonoBehaviour
     };
 
     [SerializeField] private GridType grid;
-    [Min(0.01f)] [SerializeField] private float gridRadius, packingRadius, gizmoRadius;
-    [Range(0, 1)] [SerializeField] private float adjacencyLineMagnitude;
+    [Min(0.01f)][SerializeField] private float gridRadius, packingRadius, gizmoRadius;
+    [Range(0, 1)][SerializeField] private float adjacencyLineMagnitude;
     [SerializeField] private Vector3 fccRotation;
     [SerializeField] private bool drawCubes;
     [SerializeField] private GameObject nodePrefab;
@@ -93,26 +93,26 @@ public class SphericalGridGenerator : MonoBehaviour
     private void GeneratePositionsCartesian()
     {
         for (var x = (int)-gridRadius; x < gridRadius; x++)
-        for (var y = (int)-gridRadius; y < gridRadius; y++)
-        for (var z = (int)-gridRadius; z < gridRadius; z++)
-            DuplicateToOctantsIfInGrid(x, y, z);
+            for (var y = (int)-gridRadius; y < gridRadius; y++)
+                for (var z = (int)-gridRadius; z < gridRadius; z++)
+                    DuplicateToOctantsIfInGrid(x, y, z);
     }
 
     private void GeneratePositionsHcp()
     {
         var bound = Mathf.Ceil(gridRadius / packingRadius);
         for (var i = -bound; i <= bound; i++)
-        for (var j = -bound; j <= bound; j++)
-        for (var k = -bound; k <= bound; k++)
-        {
-            // from https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres#Simple_HCP_lattice
-            float
-                x = (2f * i + (j + k) % 2f) * packingRadius,
-                z = Sqrt3 * (j + k % 2f / 3f) * packingRadius,
-                y = TwoThirdsSqrt6 * k * packingRadius;
+            for (var j = -bound; j <= bound; j++)
+                for (var k = -bound; k <= bound; k++)
+                {
+                    // from https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres#Simple_HCP_lattice
+                    float
+                        x = (2f * i + (j + k) % 2f) * packingRadius,
+                        z = Sqrt3 * (j + k % 2f / 3f) * packingRadius,
+                        y = TwoThirdsSqrt6 * k * packingRadius;
 
-            AddPositionIfInGrid(x, y, z);
-        }
+                    AddPositionIfInGrid(x, y, z);
+                }
     }
 
     private void GeneratePositionsFccD3PlusRotation()
@@ -121,40 +121,40 @@ public class SphericalGridGenerator : MonoBehaviour
 
         var bound = Mathf.Ceil(gridRadius * FccUnitPackingRadius / packingRadius);
         for (var i = -bound; i <= bound; i++)
-        for (var j = -bound; j <= bound; j++)
-        for (var k = -bound; k <= bound; k++)
-            if ((i + j + k) % 2 == 0)
-            {
-                var center = packingRadius / FccUnitPackingRadius * new Vector3(i, j, k);
-                center = rotation * center;
+            for (var j = -bound; j <= bound; j++)
+                for (var k = -bound; k <= bound; k++)
+                    if ((i + j + k) % 2 == 0)
+                    {
+                        var center = packingRadius / FccUnitPackingRadius * new Vector3(i, j, k);
+                        center = rotation * center;
 
-                if (center.sqrMagnitude >= gridRadius * gridRadius) continue;
+                        if (center.sqrMagnitude >= gridRadius * gridRadius) continue;
 
-                _positions.Add(center);
+                        _positions.Add(center);
 
-                foreach (var adjacency in Adjacencies)
-                {
-                    var direction = rotation * adjacency;
-                    var end = center + direction * adjacencyLineMagnitude;
-                    _lines.Add((center, end));
-                }
-            }
+                        foreach (var adjacency in Adjacencies)
+                        {
+                            var direction = rotation * adjacency;
+                            var end = center + direction * adjacencyLineMagnitude;
+                            _lines.Add((center, end));
+                        }
+                    }
     }
 
     private void GeneratePositionsFccModulo()
     {
         var bound = Mathf.Ceil(gridRadius / packingRadius);
         for (var i = -bound; i <= bound; i++)
-        for (var j = -bound; j <= bound; j++)
-        for (var k = -bound; k <= bound; k++)
-        {
-            float
-                x = (2f * i + (j + k % 3f) % 2f) * packingRadius,
-                z = Sqrt3 * (j + k % 3f / 3f) * packingRadius,
-                y = TwoThirdsSqrt6 * k * packingRadius;
+            for (var j = -bound; j <= bound; j++)
+                for (var k = -bound; k <= bound; k++)
+                {
+                    float
+                        x = (2f * i + (j + k % 3f) % 2f) * packingRadius,
+                        z = Sqrt3 * (j + k % 3f / 3f) * packingRadius,
+                        y = TwoThirdsSqrt6 * k * packingRadius;
 
-            AddPositionIfInGrid(x, y, z);
-        }
+                    AddPositionIfInGrid(x, y, z);
+                }
     }
 
     private void AddPositionIfInGrid(float x, float y, float z)

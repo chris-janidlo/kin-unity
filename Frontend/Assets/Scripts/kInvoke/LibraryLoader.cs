@@ -56,7 +56,7 @@ namespace kInvoke
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
         [DllImport("__Internal")]
         private static extern IntPtr dlopen(string path, int flag);
-    
+
         private static IntPtr OpenLibraryCrossPlatform(string path)
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
@@ -87,7 +87,7 @@ namespace kInvoke
         {
             dlclose(pointer);
         }
-    
+
         [DllImport("__Internal")]
         private static extern IntPtr dlsym(IntPtr handle, string symbolName);
 
@@ -98,7 +98,7 @@ namespace kInvoke
 #elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr LoadLibrary(string lpFileName);
-    
+
         private static IntPtr OpenLibraryCrossPlatform(string path)
         {
             return LoadLibrary(path);
@@ -120,7 +120,7 @@ namespace kInvoke
             return GetProcAddress(libraryPointer, name);
         }
 #else
-        #error "Unsupported platform"
+#error "Unsupported platform"
 #endif
 
 #if UNITY_EDITOR
