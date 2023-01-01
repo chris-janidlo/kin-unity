@@ -1,0 +1,47 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-added-large-files
+
+    -   id: trailing-whitespace
+        exclude: \.(meta|asset|unity)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
+    -   id: end-of-file-fixer
+        exclude: \.(meta|asset|unity)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
+
+    -   id: check-case-conflict
+        exclude: ProjectSettings|.idea
+    -   id: check-json
+        exclude: ProjectSettings|.idea
+    -   id: check-yaml
+        exclude: ProjectSettings|.idea
+    -   id: check-toml
+        exclude: ProjectSettings|.idea
+
+-   repo: local
+    hooks:
+    -   id: cargo-fmt
+        name: cargo fmt
+        language: system
+        types: ["rust"]
+        entry: cargo +nightly fmt
+        args: ["--manifest-path", "AI/Cargo.toml", "--"]
+
+    -   id: cargo-clippy
+        name: cargo clippy
+        language: system
+        types: [rust]
+        entry: cargo clippy
+        args: ["--manifest-path", "AI/Cargo.toml", "--", "-D", "warnings"]
+        pass_filenames: false
+
+    #   in VS Code, this is turned off via the SKIP environment variable due to poor
+    #   performance (takes ~8 seconds to run). see .vscode/settings.json and:
+    #       https://github.com/dotnet/format/issues/757
+    #       https://github.com/dotnet/format/issues/1378
+    -   id: dotnet-format
+        name: dotnet format
+        language: system
+        types: ["c#"]
+        entry: dotnet format
+        args: ["Frontend/Frontend.sln", "--include"]

@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.env.osx": {
+        "SKIP": "dotnet-format"
+    },
+    "terminal.integrated.env.windows": {
+        "SKIP": "dotnet-format"
+    },
+    "terminal.integrated.env.linux": {
+        "SKIP": "dotnet-format"
+    }
+}
