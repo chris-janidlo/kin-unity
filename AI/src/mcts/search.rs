@@ -23,20 +23,6 @@ where
     unexpanded_moves: T::MoveIterator,
 }
 
-impl<T> MctsNode<T>
-where
-    T: GameState,
-{
-    pub fn empty_from_state(game_state: T) -> Self {
-        MctsNode {
-            unexpanded_moves: game_state.available_moves(),
-            game_state,
-            score: 0.,
-            visits: 0,
-        }
-    }
-}
-
 impl<T> Searcher<T>
 where
     T: GameState,
@@ -194,6 +180,15 @@ impl<T> MctsNode<T>
 where
     T: GameState,
 {
+    pub fn empty_from_state(game_state: T) -> Self {
+        MctsNode {
+            unexpanded_moves: game_state.available_moves(),
+            game_state,
+            score: 0.,
+            visits: 0,
+        }
+    }
+
     #[inline]
     pub fn visits_f(&self) -> f32 {
         self.visits as f32
