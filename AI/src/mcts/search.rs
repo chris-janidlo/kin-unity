@@ -1,3 +1,5 @@
+//! Implementation of the MCTS algorithm as described by Browne et al 2012
+
 use indextree::{Arena, NodeId};
 
 use super::SearchParameters;
@@ -127,7 +129,7 @@ where
             })
     }
 
-    /// exploration_factor is also known as c (Browne et al 2012, p. 9)
+    /// exploration_factor is also known as c (Browne p. 9)
     fn best_child(&self, parent: NodeId, exploration_factor: f32) -> NodeId {
         let ucb1 = |id: &NodeId| {
             let parent = self.node(parent);
