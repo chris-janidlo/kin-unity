@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from datetime import datetime
 import subprocess
 import shlex
 
@@ -26,14 +27,13 @@ def main():
 
 def up():
     branch = get_branch()
-    run('git stash push -u')
+    run(f'git stash push -u -m "stasher auto-stash {datetime.now()}"')
     run(f'git switch -C {branch}_wip')
     run('git stash apply')
     run('git add .')
     run('git commit --no-verify -m wip')
     run('git push -f')
     run(f'git switch {branch}')
-    run('git stash pop')
 
 
 def down():
