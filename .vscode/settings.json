@@ -7,5 +7,18 @@
     },
     "terminal.integrated.env.linux": {
         "SKIP": "dotnet-format"
+    },
+    "files.exclude":
+    {
+        "**/.DS_Store":true,
+        "Frontend/build/":true,
+        "Frontend/Build/":true,
+        "Frontend/Library/":true,
+        "Frontend/library/":true,
+        "Frontend/obj/":true,
+        "Frontend/Obj/":true,
+        "Frontend/ProjectSettings/":true,
+        "Frontend/temp/":true,
+        "Frontend/Temp/":true
     }
 }
