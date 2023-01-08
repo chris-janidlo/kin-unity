@@ -55,6 +55,7 @@ def get_branch():
 
 
 def run(cmd):
+    print("> " + cmd)
     args = shlex.split(cmd)
     subprocess.run(args).check_returncode()
 
