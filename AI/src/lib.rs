@@ -1,10 +1,11 @@
 use std::f32::consts::FRAC_1_SQRT_2;
 
-use game_state::GameState;
-use mcts::{SearchParameters, Searcher};
-
 mod game_state;
 mod mcts;
+mod rules;
+
+use game_state::GameState;
+use mcts::{SearchParameters, Searcher};
 
 #[derive(PartialEq)]
 pub struct GS(i32);

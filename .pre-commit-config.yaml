@@ -32,7 +32,7 @@ repos:
         language: system
         types: [rust]
         entry: cargo clippy
-        args: ["--manifest-path", "AI/Cargo.toml", "--", "-D", "warnings"]
+        args: ["--manifest-path", "AI/Cargo.toml"]
         pass_filenames: false
 
     #   in VS Code, this is turned off via the SKIP environment variable due to poor

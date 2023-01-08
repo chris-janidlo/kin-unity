@@ -1,5 +1,5 @@
-mod search;
-pub use search::*;
-
 mod parameters;
+mod search;
+
 pub use parameters::*;
+pub use search::*;
