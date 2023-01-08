@@ -42,7 +42,7 @@ def down():
     branch = get_branch()
     run(f'git branch -D {branch}_wip')
     run(f'git switch -c {branch}_wip')
-    run('git pull')
+    run(f'git pull origin {branch}_wip')
     run('git reset HEAD^')
     run(f'git switch {branch}')
 
