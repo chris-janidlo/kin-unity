@@ -37,6 +37,7 @@ def up():
 
 
 def down():
+    check_git_is_clean()
     branch = get_branch()
     run(f'git switch -C {branch}_wip')
     run('git pull')
@@ -58,6 +59,24 @@ def run(cmd):
     print("> " + cmd)
     args = shlex.split(cmd)
     subprocess.run(args).check_returncode()
+
+
+def check_git_is_clean():
+    result = subprocess.run(
+        shlex.split('git status'),
+        capture_output=True,
+        encoding='utf-8'
+    )
+    result.check_returncode()
+    out = result.stdout
+
+    if "up to date" not in out:
+        print("branch is not up to date")
+        exit(1)
+
+    if "nothing to commit" not in out or "working tree clean" not in out:
+        print("you have unstaged or uncommitted changes")
+        exit(1)
 
 
 if __name__ == '__main__':
