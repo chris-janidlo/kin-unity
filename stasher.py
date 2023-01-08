@@ -40,7 +40,8 @@ def up():
 def down():
     check_git_is_clean()
     branch = get_branch()
-    run(f'git switch -C {branch}_wip')
+    run(f'git branch -D {branch}_wip')
+    run(f'git switch -c {branch}_wip')
     run('git pull')
     run('git reset HEAD^')
     run(f'git switch {branch}')
