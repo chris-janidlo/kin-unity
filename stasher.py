@@ -28,7 +28,8 @@ def main():
 def up():
     branch = get_branch()
     run(f'git stash push -u -m "stasher auto-stash {datetime.now()}"')
-    run(f'git switch -C {branch}_wip')
+    run(f'git branch -D {branch}_wip')
+    run(f'git switch -c {branch}_wip')
     run('git stash apply')
     run('git add .')
     run('git commit --no-verify -m wip')
