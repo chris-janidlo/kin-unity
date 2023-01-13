@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityAtoms.LDJ50;
 using UnityEngine;
 using UnityEngine.Serialization;
+using GameUI;
 
 public class GameLoop : MonoBehaviour
 {
