@@ -1,4 +1,5 @@
 using UnityEngine;
+using Decisions;
 
 namespace UnityAtoms.LDJ50
 {
@@ -7,5 +8,7 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-cherry")]
     [CreateAssetMenu(menuName = "Unity Atoms/Events/ADecider", fileName = "ADeciderEvent")]
-    public sealed class ADeciderEvent : AtomEvent<ADecider> { }
+    public sealed class ADeciderEvent : AtomEvent<ADecider>
+    {
+    }
 }
