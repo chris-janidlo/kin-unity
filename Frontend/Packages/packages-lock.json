@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "94240584df5015bbecc56ca21784fd24c841e14c"
     },
+    "com.cysharp.unitask": {
+      "version": "2.3.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://package.openupm.com"
+    },
     "com.mambojambostudios.unity-atoms-base-atoms": {
       "version": "4.4.2",
       "depth": 0,
