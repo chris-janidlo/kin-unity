@@ -8,8 +8,6 @@ namespace Decisions
 {
     public abstract class ADecider : ScriptableObject, IEquatable<ADecider>
     {
-        public virtual bool Deciding { get; protected set; }
-
         public bool Equals(ADecider other)
         {
             return base.Equals(other);
