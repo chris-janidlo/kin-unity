@@ -10,8 +10,6 @@ namespace Decisions
     [CreateAssetMenu(menuName = "LDJ50/Deciders/Random", fileName = "newRandomDecider.asset")]
     public class RandomDecider : ADecider
     {
-        public override bool Deciding => false;
-
         public override UniTask<GameState> DecideMove(GameState currentState, CancellationToken token)
         {
             var movePool = currentState.LegalFutureStates().ToList();
