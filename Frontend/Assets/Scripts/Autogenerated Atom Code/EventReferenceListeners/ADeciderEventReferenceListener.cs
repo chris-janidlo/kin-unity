@@ -8,10 +8,11 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-orange")]
     [AddComponentMenu("Unity Atoms/Listeners/ADecider Event Reference Listener")]
-    public sealed class ADeciderEventReferenceListener : AtomEventReferenceListener<
-        ADecider,
-        ADeciderEvent,
-        ADeciderEventReference,
-        ADeciderUnityEvent>
-    { }
+    public sealed class ADeciderEventReferenceListener
+        : AtomEventReferenceListener<
+            ADecider,
+            ADeciderEvent,
+            ADeciderEventReference,
+            ADeciderUnityEvent
+        > { }
 }

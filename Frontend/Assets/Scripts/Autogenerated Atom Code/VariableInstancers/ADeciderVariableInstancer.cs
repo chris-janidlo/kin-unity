@@ -9,12 +9,13 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-hotpink")]
     [AddComponentMenu("Unity Atoms/Variable Instancers/ADecider Variable Instancer")]
-    public class ADeciderVariableInstancer : AtomVariableInstancer<
-        ADeciderVariable,
-        ADeciderPair,
-        ADecider,
-        ADeciderEvent,
-        ADeciderPairEvent,
-        ADeciderADeciderFunction>
-    { }
+    public class ADeciderVariableInstancer
+        : AtomVariableInstancer<
+            ADeciderVariable,
+            ADeciderPair,
+            ADecider,
+            ADeciderEvent,
+            ADeciderPairEvent,
+            ADeciderADeciderFunction
+        > { }
 }

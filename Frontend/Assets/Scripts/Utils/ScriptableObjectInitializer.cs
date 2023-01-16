@@ -11,7 +11,8 @@ namespace Utils
 
         private void Start()
         {
-            foreach (var so in initializableScriptableObjects) so.Initialize();
+            foreach (var so in initializableScriptableObjects)
+                so.Initialize();
         }
     }
 }

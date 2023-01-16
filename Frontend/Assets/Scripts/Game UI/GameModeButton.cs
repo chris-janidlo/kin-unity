@@ -16,7 +16,8 @@ namespace GameUI
         [FormerlySerializedAs("BlueDeciderValue")]
         public ADecider blueDeciderValue;
 
-        [FormerlySerializedAs("ButtonText")] public string buttonText;
+        [FormerlySerializedAs("ButtonText")]
+        public string buttonText;
 
         [FormerlySerializedAs("RedDeciderVariable")]
         public ADeciderVariable redDeciderVariable;
@@ -24,7 +25,8 @@ namespace GameUI
         [FormerlySerializedAs("BlueDeciderVariable")]
         public ADeciderVariable blueDeciderVariable;
 
-        [FormerlySerializedAs("GameScene")] public SceneField gameScene;
+        [FormerlySerializedAs("GameScene")]
+        public SceneField gameScene;
 
         [FormerlySerializedAs("ButtonTextContainer")]
         public TextMeshProUGUI buttonTextContainer;

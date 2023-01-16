@@ -12,20 +12,25 @@ namespace Kin_UI
 {
     public class BoardDriver : MonoBehaviour
     {
-        [FormerlySerializedAs("Cells")] public List<Cell> cells;
+        [FormerlySerializedAs("Cells")]
+        public List<Cell> cells;
 
-        [FormerlySerializedAs("ResetButton")] public Button resetButton;
+        [FormerlySerializedAs("ResetButton")]
+        public Button resetButton;
 
         [FormerlySerializedAs("ConfirmButton")]
         public Button confirmButton;
 
-        [FormerlySerializedAs("FormButtons")] public FormPopup formButtons;
+        [FormerlySerializedAs("FormButtons")]
+        public FormPopup formButtons;
 
         [FormerlySerializedAs("PlayerDecider")]
         public PlayerDecider playerDecider;
 
-        private Vector2Int _currentlyMoving, _currentTarget;
-        private GameState _masterState, _workingState;
+        private Vector2Int _currentlyMoving,
+            _currentTarget;
+        private GameState _masterState,
+            _workingState;
         private List<char> _pieceIdsMoved;
 
         private Dictionary<Vector2Int, Cell> _positionMap;
@@ -39,8 +44,8 @@ namespace Kin_UI
             {
                 if (_positionMap.TryGetValue(cell.coordinates, out var existingCell))
                     throw new InvalidOperationException(
-                        $"cannot add Cell {cell.name} to {name} because" +
-                        $" there is already a Cell ({existingCell.name}) at position {cell.coordinates}"
+                        $"cannot add Cell {cell.name} to {name} because"
+                            + $" there is already a Cell ({existingCell.name}) at position {cell.coordinates}"
                     );
 
                 _positionMap[cell.coordinates] = cell;
@@ -85,26 +90,41 @@ namespace Kin_UI
 
         private void ResetButtons(ButtonType types = ButtonType.All)
         {
-            if (types.HasFlag(ButtonType.Reset)) resetButton.interactable = false;
-            if (types.HasFlag(ButtonType.Confirm)) confirmButton.interactable = false;
+            if (types.HasFlag(ButtonType.Reset))
+                resetButton.interactable = false;
+            if (types.HasFlag(ButtonType.Confirm))
+                confirmButton.interactable = false;
 
             foreach (var cell in cells)
-                if ((types.HasFlag(ButtonType.MoveablePiece) &&
-                     cell.GetClickCallback() == MoveablePieceClickCallback) ||
-                    (types.HasFlag(ButtonType.PieceMovementTarget) &&
-                     cell.GetClickCallback() == PieceMovementTargetClickCallback))
+                if (
+                    (
+                        types.HasFlag(ButtonType.MoveablePiece)
+                        && cell.GetClickCallback() == MoveablePieceClickCallback
+                    )
+                    || (
+                        types.HasFlag(ButtonType.PieceMovementTarget)
+                        && cell.GetClickCallback() == PieceMovementTargetClickCallback
+                    )
+                )
                     cell.RegisterClickCallback(null);
 
-            if (types.HasFlag(ButtonType.PieceTransformation)) formButtons.TearDownPopup();
+            if (types.HasFlag(ButtonType.PieceTransformation))
+                formButtons.TearDownPopup();
         }
 
         private void SetupMoveablePieces(Vector2Int? exceptPosition = null)
         {
             foreach (var playerPiece in _workingState.PiecesOwnedByCurrentPlayer())
             {
-                if (playerPiece.Position == exceptPosition || _pieceIdsMoved.Contains(playerPiece.ID)) continue;
+                if (
+                    playerPiece.Position == exceptPosition
+                    || _pieceIdsMoved.Contains(playerPiece.ID)
+                )
+                    continue;
 
-                _positionMap[playerPiece.Position].RegisterClickCallback(MoveablePieceClickCallback);
+                _positionMap[playerPiece.Position].RegisterClickCallback(
+                    MoveablePieceClickCallback
+                );
             }
         }
 
@@ -129,7 +149,10 @@ namespace Kin_UI
             ResetButtons(ButtonType.AllGrid);
             SetupMoveablePieces();
 
-            formButtons.SetUpPopup(cell, _workingState.LegalFormTransitionsForPieceAt(_currentlyMoving));
+            formButtons.SetUpPopup(
+                cell,
+                _workingState.LegalFormTransitionsForPieceAt(_currentlyMoving)
+            );
 
             _currentTarget = cell.coordinates;
         }
@@ -156,7 +179,8 @@ namespace Kin_UI
         [Flags]
         private enum ButtonType
         {
-            [UsedImplicitly] None = 0,
+            [UsedImplicitly]
+            None = 0,
 
             Reset = 1 << 0,
             Confirm = 1 << 1,

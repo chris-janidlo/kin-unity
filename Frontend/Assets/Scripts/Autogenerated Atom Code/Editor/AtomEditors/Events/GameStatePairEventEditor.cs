@@ -10,6 +10,7 @@ namespace UnityAtoms.LDJ50.Editor
     /// Event property drawer of type `GameStatePair`. Inherits from `AtomEventEditor&lt;GameStatePair, GameStatePairEvent&gt;`. Only availble in `UNITY_2019_1_OR_NEWER`.
     /// </summary>
     [CustomEditor(typeof(GameStatePairEvent))]
-    public sealed class GameStatePairEventEditor : AtomEventEditor<GameStatePair, GameStatePairEvent> { }
+    public sealed class GameStatePairEventEditor
+        : AtomEventEditor<GameStatePair, GameStatePairEvent> { }
 }
 #endif

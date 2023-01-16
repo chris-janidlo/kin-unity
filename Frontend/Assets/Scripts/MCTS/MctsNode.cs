@@ -69,7 +69,8 @@ namespace MCTS
 
         public void Expand()
         {
-            foreach (var state in GameState.LegalFutureStates()) AddChild(new MctsNode(state, _searchParameters));
+            foreach (var state in GameState.LegalFutureStates())
+                AddChild(new MctsNode(state, _searchParameters));
         }
 
         public void BackPropagate(float score)
@@ -93,13 +94,15 @@ namespace MCTS
         // UCT formula
         private float ExplorationValue()
         {
-            if (Visits == 0) return float.PositiveInfinity;
+            if (Visits == 0)
+                return float.PositiveInfinity;
 
             var value =
                 // prefer nodes with higher score:
                 _totalScore / Visits
                 // but also look at nodes that have been under-explored:
-                + _searchParameters.explorationFactor * Mathf.Sqrt(Mathf.Log(_parent.Visits) / Visits);
+                + _searchParameters.explorationFactor
+                    * Mathf.Sqrt(Mathf.Log(_parent.Visits) / Visits);
 
             return value;
         }

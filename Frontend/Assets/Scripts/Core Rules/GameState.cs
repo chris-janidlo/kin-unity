@@ -31,11 +31,7 @@ namespace Core_Rules
             AddPiece(Player.Red, 'R', new Vector2Int(redCorner - 1, redCorner));
             AddPiece(Player.Red, 'r', new Vector2Int(redCorner, redCorner - 1));
 
-            return new GameState
-            {
-                Board = board,
-                CurrentPlayer = FirstPlayer
-            };
+            return new GameState { Board = board, CurrentPlayer = FirstPlayer };
         }
 
         public static bool operator ==(GameState lhs, GameState rhs)
@@ -75,7 +71,8 @@ namespace Core_Rules
                 foreach (var move in piece.LegalMoves(Board))
                 {
                     var state = ApplyMove(this, piece, move, true);
-                    if (seenStates.Contains(state)) continue;
+                    if (seenStates.Contains(state))
+                        continue;
 
                     seenStates.Add(state);
                     yield return state;
@@ -90,12 +87,14 @@ namespace Core_Rules
                     var intermediateState = ApplyMove(this, piece1, move1, false);
                     foreach (var piece2 in pieces)
                     {
-                        if (piece1 == piece2) continue;
+                        if (piece1 == piece2)
+                            continue;
 
                         foreach (var move2 in piece2.LegalMoves(intermediateState.Board))
                         {
                             var finalState = ApplyMove(intermediateState, piece2, move2, true);
-                            if (seenStates.Contains(finalState)) continue;
+                            if (seenStates.Contains(finalState))
+                                continue;
 
                             seenStates.Add(finalState);
                             yield return finalState;
@@ -127,9 +126,7 @@ namespace Core_Rules
 
         public void FlipPlayer()
         {
-            CurrentPlayer = CurrentPlayer == Player.Blue
-                ? Player.Red
-                : Player.Blue;
+            CurrentPlayer = CurrentPlayer == Player.Blue ? Player.Red : Player.Blue;
         }
 
         public Piece? GetPieceById(char id)
@@ -138,15 +135,22 @@ namespace Core_Rules
         }
 
         // assumes move is legal
-        public static GameState ApplyMove(GameState originalState, Piece oldPiece, Piece newPiece, bool changePlayer)
+        public static GameState ApplyMove(
+            GameState originalState,
+            Piece oldPiece,
+            Piece newPiece,
+            bool changePlayer
+        )
         {
             var result = originalState;
             // since the above line results in a fast memory copy, we need to create a new Board in order to not
             // overwrite the one in originalState:
             result.Board = Board.DeepClone(originalState.Board);
 
-            if (result.Board.GetPiece(newPiece.Position) is { } conflictingPiece &&
-                oldPiece.Form.GetInteraction() == PieceInteraction.Swap)
+            if (
+                result.Board.GetPiece(newPiece.Position) is { } conflictingPiece
+                && oldPiece.Form.GetInteraction() == PieceInteraction.Swap
+            )
             {
                 conflictingPiece.Position = oldPiece.Position;
                 result.Board.SetPiece(conflictingPiece, oldPiece.Position);
@@ -158,7 +162,8 @@ namespace Core_Rules
 
             result.Board.SetPiece(newPiece, newPiece.Position);
 
-            if (changePlayer) result.FlipPlayer();
+            if (changePlayer)
+                result.FlipPlayer();
 
             result.IsLossState = result.Board.IsLossForPlayer(result.CurrentPlayer);
 

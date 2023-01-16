@@ -5,11 +5,17 @@ using UnityEngine.Serialization;
 
 namespace Kin_UI
 {
-    [CreateAssetMenu(menuName = "LDJ50/Kin Sprite Generator", fileName = "newSpriteGenerator.asset")]
+    [CreateAssetMenu(
+        menuName = "LDJ50/Kin Sprite Generator",
+        fileName = "newSpriteGenerator.asset"
+    )]
     public class PieceSpriteGenerator : ScriptableObject
     {
-        [FormerlySerializedAs("FormSprites")] public EnumMap<Form, Sprite> formSprites;
-        [FormerlySerializedAs("PlayerColors")] public EnumMap<Player, Color> playerColors;
+        [FormerlySerializedAs("FormSprites")]
+        public EnumMap<Form, Sprite> formSprites;
+
+        [FormerlySerializedAs("PlayerColors")]
+        public EnumMap<Player, Color> playerColors;
 
         public (Sprite, Color) GetSprite(Piece? potentialPiece)
         {

@@ -8,8 +8,11 @@ namespace Kin_UI
 {
     public class GameLog : MonoBehaviour
     {
-        [FormerlySerializedAs("Generator")] public GameLogGenerator generator;
-        [FormerlySerializedAs("Text")] public TextMeshProUGUI text;
+        [FormerlySerializedAs("Generator")]
+        public GameLogGenerator generator;
+
+        [FormerlySerializedAs("Text")]
+        public TextMeshProUGUI text;
 
         private List<string> _logEntries;
 
@@ -24,7 +27,8 @@ namespace Kin_UI
             decision.Deconstruct(out var oldState, out var newState);
             var newLogEntry = generator.GetLogEntryForAction(oldState, newState);
 
-            if (_logEntries.Count > 0) text.text += "\n\n";
+            if (_logEntries.Count > 0)
+                text.text += "\n\n";
             text.text += newLogEntry;
             _logEntries.Add(newLogEntry);
         }

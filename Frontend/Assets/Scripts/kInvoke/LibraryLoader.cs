@@ -14,7 +14,8 @@ namespace kInvoke
     internal static class LibraryLoader
     {
         // TODO: verify that these are safe to cache
-        private static readonly Dictionary<string, IntPtr> FunctionPointerCache, LibraryPointerCache;
+        private static readonly Dictionary<string, IntPtr> FunctionPointerCache,
+            LibraryPointerCache;
 
         static LibraryLoader()
         {
@@ -29,10 +30,12 @@ namespace kInvoke
 
         public static IntPtr GetLibraryPointer(string libraryName)
         {
-            if (LibraryPointerCache.TryGetValue(libraryName, out var libraryPointer)) return libraryPointer;
+            if (LibraryPointerCache.TryGetValue(libraryName, out var libraryPointer))
+                return libraryPointer;
 
             libraryPointer = OpenLibraryCrossPlatform(libraryName);
-            if (libraryPointer == IntPtr.Zero) throw new CannotLoadLibraryException(libraryName);
+            if (libraryPointer == IntPtr.Zero)
+                throw new CannotLoadLibraryException(libraryName);
 
             return LibraryPointerCache[libraryName] = libraryPointer;
         }
@@ -46,7 +49,8 @@ namespace kInvoke
             {
                 functionPointer = GetFunctionPointerCrossPlatform(libraryPointer, functionName);
 
-                if (functionPointer == IntPtr.Zero) throw new CannotLoadFunctionException(functionName);
+                if (functionPointer == IntPtr.Zero)
+                    throw new CannotLoadFunctionException(functionName);
                 FunctionPointerCache[functionName] = functionPointer;
             }
 
@@ -71,9 +75,7 @@ namespace kInvoke
             //  should be the directory containing the running app
             // given that, modify the path passed to `dlopen` to point inside the app bundle
             // FIXME: there's probably a better way to get the name of the running app
-            var appName = Environment.CommandLine
-                .Split("/")
-                .Last(s => s.Contains(".app"));
+            var appName = Environment.CommandLine.Split("/").Last(s => s.Contains(".app"));
             path = $"{appName}/{path}";
 #endif
             Debug.Log($"{nameof(OpenLibraryCrossPlatform)}, macOS: opening library at path {path}");
@@ -126,7 +128,8 @@ namespace kInvoke
 #if UNITY_EDITOR
         private static void Teardown(PlayModeStateChange playModeStateChange)
         {
-            if (playModeStateChange != PlayModeStateChange.ExitingPlayMode) return;
+            if (playModeStateChange != PlayModeStateChange.ExitingPlayMode)
+                return;
 
             foreach (var pointer in LibraryPointerCache.Values)
                 CloseLibraryCrossPlatform(pointer);

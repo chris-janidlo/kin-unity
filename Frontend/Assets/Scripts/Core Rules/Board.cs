@@ -35,18 +35,21 @@ namespace Core_Rules
 
         public bool InBounds(Vector2Int position)
         {
-            return
-                position.x >= 0 && position.x < _sideLength &&
-                position.y >= 0 && position.y < _sideLength;
+            return position.x >= 0
+                && position.x < _sideLength
+                && position.y >= 0
+                && position.y < _sideLength;
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                if (_positions == null) return 0;
+                if (_positions == null)
+                    return 0;
                 var hash = 17;
-                foreach (var element in _positions) hash = hash * 31 + element.GetHashCode();
+                foreach (var element in _positions)
+                    hash = hash * 31 + element.GetHashCode();
                 return hash;
             }
         }

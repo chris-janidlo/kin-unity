@@ -8,5 +8,6 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-sign-blue")]
     [AddComponentMenu("Unity Atoms/Event Instancers/GameStatePair Event Instancer")]
-    public class GameStatePairEventInstancer : AtomEventInstancer<GameStatePair, GameStatePairEvent> { }
+    public class GameStatePairEventInstancer
+        : AtomEventInstancer<GameStatePair, GameStatePairEvent> { }
 }

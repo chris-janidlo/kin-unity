@@ -5,44 +5,61 @@ using UnityEngine;
 [ExecuteAlways]
 public class SphericalGridGenerator : MonoBehaviour
 {
-    private static readonly float
-        Sqrt3 = Mathf.Sqrt(3f),
+    private static readonly float Sqrt3 = Mathf.Sqrt(3f),
         TwoThirdsSqrt6 = Mathf.Sqrt(6f) * 2f / 3f,
         FccUnitPackingRadius = 1f / Mathf.Sqrt(2f);
 
-    private static readonly List<Vector3> Adjacencies = new()
-    {
-        new Vector3(1, 1, 0),
-        new Vector3(1, -1, 0),
-        new Vector3(-1, 1, 0),
-        new Vector3(-1, -1, 0),
-        new Vector3(1, 0, 1),
-        new Vector3(1, 0, -1),
-        new Vector3(-1, 0, 1),
-        new Vector3(-1, 0, -1),
-        new Vector3(0, 1, 1),
-        new Vector3(0, 1, -1),
-        new Vector3(0, -1, 1),
-        new Vector3(0, -1, -1)
-    };
+    private static readonly List<Vector3> Adjacencies =
+        new()
+        {
+            new Vector3(1, 1, 0),
+            new Vector3(1, -1, 0),
+            new Vector3(-1, 1, 0),
+            new Vector3(-1, -1, 0),
+            new Vector3(1, 0, 1),
+            new Vector3(1, 0, -1),
+            new Vector3(-1, 0, 1),
+            new Vector3(-1, 0, -1),
+            new Vector3(0, 1, 1),
+            new Vector3(0, 1, -1),
+            new Vector3(0, -1, 1),
+            new Vector3(0, -1, -1)
+        };
 
-    [SerializeField] private GridType grid;
-    [Min(0.01f)][SerializeField] private float gridRadius, packingRadius, gizmoRadius;
-    [Range(0, 1)][SerializeField] private float adjacencyLineMagnitude;
-    [SerializeField] private Vector3 fccRotation;
-    [SerializeField] private bool drawCubes;
-    [SerializeField] private GameObject nodePrefab;
+    [SerializeField]
+    private GridType grid;
+
+    [Min(0.01f)]
+    [SerializeField]
+    private float gridRadius,
+        packingRadius,
+        gizmoRadius;
+
+    [Range(0, 1)]
+    [SerializeField]
+    private float adjacencyLineMagnitude;
+
+    [SerializeField]
+    private Vector3 fccRotation;
+
+    [SerializeField]
+    private bool drawCubes;
+
+    [SerializeField]
+    private GameObject nodePrefab;
 
     private readonly List<(Vector3, Vector3)> _lines = new();
     private readonly List<Vector3> _positions = new();
 
     private void Start()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+            return;
 
         GeneratePositions();
 
-        foreach (var pos in _positions) Instantiate(nodePrefab, pos, Quaternion.identity, transform);
+        foreach (var pos in _positions)
+            Instantiate(nodePrefab, pos, Quaternion.identity, transform);
     }
 
     private void OnDrawGizmos()
@@ -53,7 +70,8 @@ public class SphericalGridGenerator : MonoBehaviour
             else
                 Gizmos.DrawWireSphere(pos, gizmoRadius);
 
-        foreach (var pair in _lines) Gizmos.DrawLine(pair.Item1, pair.Item2);
+        foreach (var pair in _lines)
+            Gizmos.DrawLine(pair.Item1, pair.Item2);
 
         Gizmos.DrawWireSphere(Vector3.zero, gridRadius);
     }
@@ -106,8 +124,7 @@ public class SphericalGridGenerator : MonoBehaviour
                 for (var k = -bound; k <= bound; k++)
                 {
                     // from https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres#Simple_HCP_lattice
-                    float
-                        x = (2f * i + (j + k) % 2f) * packingRadius,
+                    float x = (2f * i + (j + k) % 2f) * packingRadius,
                         z = Sqrt3 * (j + k % 2f / 3f) * packingRadius,
                         y = TwoThirdsSqrt6 * k * packingRadius;
 
@@ -128,7 +145,8 @@ public class SphericalGridGenerator : MonoBehaviour
                         var center = packingRadius / FccUnitPackingRadius * new Vector3(i, j, k);
                         center = rotation * center;
 
-                        if (center.sqrMagnitude >= gridRadius * gridRadius) continue;
+                        if (center.sqrMagnitude >= gridRadius * gridRadius)
+                            continue;
 
                         _positions.Add(center);
 
@@ -148,8 +166,7 @@ public class SphericalGridGenerator : MonoBehaviour
             for (var j = -bound; j <= bound; j++)
                 for (var k = -bound; k <= bound; k++)
                 {
-                    float
-                        x = (2f * i + (j + k % 3f) % 2f) * packingRadius,
+                    float x = (2f * i + (j + k % 3f) % 2f) * packingRadius,
                         z = Sqrt3 * (j + k % 3f / 3f) * packingRadius,
                         y = TwoThirdsSqrt6 * k * packingRadius;
 
@@ -165,7 +182,8 @@ public class SphericalGridGenerator : MonoBehaviour
 
     private void DuplicateToOctantsIfInGrid(float x, float y, float z)
     {
-        if (x * x + y * y + z * z >= gridRadius * gridRadius) return;
+        if (x * x + y * y + z * z >= gridRadius * gridRadius)
+            return;
 
         if (x == 0 && y == 0 && z == 0)
         {

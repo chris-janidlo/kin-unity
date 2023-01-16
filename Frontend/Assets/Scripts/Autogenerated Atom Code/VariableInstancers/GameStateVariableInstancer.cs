@@ -9,12 +9,13 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-hotpink")]
     [AddComponentMenu("Unity Atoms/Variable Instancers/GameState Variable Instancer")]
-    public class GameStateVariableInstancer : AtomVariableInstancer<
-        GameStateVariable,
-        GameStatePair,
-        GameState,
-        GameStateEvent,
-        GameStatePairEvent,
-        GameStateGameStateFunction>
-    { }
+    public class GameStateVariableInstancer
+        : AtomVariableInstancer<
+            GameStateVariable,
+            GameStatePair,
+            GameState,
+            GameStateEvent,
+            GameStatePairEvent,
+            GameStateGameStateFunction
+        > { }
 }

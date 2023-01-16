@@ -10,6 +10,7 @@ namespace UnityAtoms.LDJ50.Editor
     /// Event property drawer of type `ADeciderPair`. Inherits from `AtomEventEditor&lt;ADeciderPair, ADeciderPairEvent&gt;`. Only availble in `UNITY_2019_1_OR_NEWER`.
     /// </summary>
     [CustomEditor(typeof(ADeciderPairEvent))]
-    public sealed class ADeciderPairEventEditor : AtomEventEditor<ADeciderPair, ADeciderPairEvent> { }
+    public sealed class ADeciderPairEventEditor
+        : AtomEventEditor<ADeciderPair, ADeciderPairEvent> { }
 }
 #endif

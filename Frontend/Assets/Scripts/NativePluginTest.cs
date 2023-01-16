@@ -12,8 +12,7 @@ public class NativePluginTest : MonoBehaviour
         var i = 0;
         while (true)
         {
-            text.text = LibraryFunction<mul_by_5>.Invoke(i++)
-                .ToString();
+            text.text = LibraryFunction<mul_by_5>.Invoke(i++).ToString();
             yield return new WaitForSeconds(1);
         }
         // ReSharper disable once IteratorNeverReturns

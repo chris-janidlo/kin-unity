@@ -16,14 +16,20 @@ namespace Decisions
 
         private MctsSearcher _searcher;
 
-        public override async UniTask<GameState> DecideMove(GameState currentState, CancellationToken token)
+        public override async UniTask<GameState> DecideMove(
+            GameState currentState,
+            CancellationToken token
+        )
         {
             Deciding = true;
             Progress = 0;
 
             _searcher ??= new MctsSearcher(currentState.CurrentPlayer, searchParameters);
 
-            var result = await Task.Run(() => _searcher.Search(currentState, p => Progress = p), token);
+            var result = await Task.Run(
+                () => _searcher.Search(currentState, p => Progress = p),
+                token
+            );
             Deciding = false;
 
             return result;

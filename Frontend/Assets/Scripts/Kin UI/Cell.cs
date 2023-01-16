@@ -9,10 +9,14 @@ namespace Kin_UI
     {
         public delegate void ClickCallback(Cell cell);
 
-        [FormerlySerializedAs("Coordinates")] public Vector2Int coordinates;
+        [FormerlySerializedAs("Coordinates")]
+        public Vector2Int coordinates;
 
-        [FormerlySerializedAs("PieceImage")] public Image pieceImage;
-        [FormerlySerializedAs("Button")] public Button button;
+        [FormerlySerializedAs("PieceImage")]
+        public Image pieceImage;
+
+        [FormerlySerializedAs("Button")]
+        public Button button;
 
         [FormerlySerializedAs("PieceSpriteGenerator")]
         public PieceSpriteGenerator pieceSpriteGenerator;
@@ -37,7 +41,9 @@ namespace Kin_UI
 
         public void UpdateImage(GameState state)
         {
-            (pieceImage.sprite, pieceImage.color) = pieceSpriteGenerator.GetSprite(state.Board.GetPiece(coordinates));
+            (pieceImage.sprite, pieceImage.color) = pieceSpriteGenerator.GetSprite(
+                state.Board.GetPiece(coordinates)
+            );
         }
     }
 }

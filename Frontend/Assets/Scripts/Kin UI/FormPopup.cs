@@ -17,8 +17,8 @@ namespace Kin_UI
 
         [FormerlySerializedAs("FormButtons")]
         [Tooltip(
-            "Assumes that there aren't any extra GameObjects between" +
-            " buttons and the layout group that controls the button layout"
+            "Assumes that there aren't any extra GameObjects between"
+                + " buttons and the layout group that controls the button layout"
         )]
         public EnumMap<Form, Button> formButtons;
 
