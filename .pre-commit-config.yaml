@@ -5,9 +5,9 @@ repos:
     -   id: check-added-large-files
 
     -   id: trailing-whitespace
-        exclude: \.(meta|asset|unity)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
+        exclude: \.(meta|asset|unity|prefab)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
     -   id: end-of-file-fixer
-        exclude: \.(meta|asset|unity)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
+        exclude: \.(meta|asset|unity|prefab)$|ProjectSettings|BillingMode.json|TextMesh Pro|.idea
 
     -   id: check-case-conflict
         exclude: ProjectSettings|.idea
