@@ -21,7 +21,9 @@ namespace Editor
                     PostBuildMac(pathToBuiltProject);
                     break;
                 default:
-                    Debug.Log($"Unhandled {nameof(BuildTarget)}: {target}. No post-processing will occur");
+                    Debug.Log(
+                        $"Unhandled {nameof(BuildTarget)}: {target}. No post-processing will occur"
+                    );
                     break;
             }
         }

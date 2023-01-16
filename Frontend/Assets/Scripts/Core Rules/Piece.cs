@@ -14,9 +14,7 @@ namespace Core_Rules
 
         public static bool operator ==(Piece lhs, Piece rhs)
         {
-            return lhs.Owner == rhs.Owner &&
-                   lhs.Form == rhs.Form &&
-                   lhs.Position == rhs.Position;
+            return lhs.Owner == rhs.Owner && lhs.Form == rhs.Form && lhs.Position == rhs.Position;
         }
 
         public static bool operator !=(Piece lhs, Piece rhs)

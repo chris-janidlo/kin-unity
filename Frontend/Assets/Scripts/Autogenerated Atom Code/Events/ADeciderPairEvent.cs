@@ -8,7 +8,5 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-cherry")]
     [CreateAssetMenu(menuName = "Unity Atoms/Events/ADeciderPair", fileName = "ADeciderPairEvent")]
-    public sealed class ADeciderPairEvent : AtomEvent<ADeciderPair>
-    {
-    }
+    public sealed class ADeciderPairEvent : AtomEvent<ADeciderPair> { }
 }

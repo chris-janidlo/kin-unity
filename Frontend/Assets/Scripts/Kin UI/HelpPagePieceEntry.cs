@@ -12,7 +12,8 @@ namespace Kin_UI
 {
     public class HelpPagePieceEntry : MonoBehaviour
     {
-        [FormerlySerializedAs("Form")] public Form form;
+        [FormerlySerializedAs("Form")]
+        public Form form;
 
         [FormerlySerializedAs("ActiveBoardCellColor")]
         public Color activeBoardCellColor;
@@ -20,9 +21,14 @@ namespace Kin_UI
         [FormerlySerializedAs("InteractionDescriptions")]
         public EnumMap<PieceInteraction, string> interactionDescriptions;
 
-        [FormerlySerializedAs("PieceImages")] public List<Image> pieceImages;
-        [FormerlySerializedAs("Name")] public TextMeshProUGUI pieceName;
-        [FormerlySerializedAs("BoardCells")] public List<Image> boardCells;
+        [FormerlySerializedAs("PieceImages")]
+        public List<Image> pieceImages;
+
+        [FormerlySerializedAs("Name")]
+        public TextMeshProUGUI pieceName;
+
+        [FormerlySerializedAs("BoardCells")]
+        public List<Image> boardCells;
 
         [FormerlySerializedAs("FormTransformationImages")]
         public EnumMap<Form, Image> formTransformationImages;
@@ -43,7 +49,8 @@ namespace Kin_UI
 
         private void DrawSummary()
         {
-            foreach (var image in pieceImages) image.sprite = pieceSpriteGenerator.GetGraphic(form);
+            foreach (var image in pieceImages)
+                image.sprite = pieceSpriteGenerator.GetGraphic(form);
 
             pieceName.text = form.ToString();
         }
@@ -59,9 +66,11 @@ namespace Kin_UI
             for (var i = 0; i < boardCells.Count; i++)
             {
                 var coordinate = new Vector2Int(i % sideLength, i / sideLength);
-                if (coordinate == boardCenter) continue;
+                if (coordinate == boardCenter)
+                    continue;
 
-                if (validPositions.Contains(coordinate)) boardCells[i].color = activeBoardCellColor;
+                if (validPositions.Contains(coordinate))
+                    boardCells[i].color = activeBoardCellColor;
             }
         }
 
@@ -70,7 +79,9 @@ namespace Kin_UI
             var formTransformations = form.GetFormTransitions().ToList();
 
             foreach (var value in EnumUtil.AllValues<Form>())
-                formTransformationImages[value].gameObject.SetActive(formTransformations.Contains(value));
+                formTransformationImages[value].gameObject.SetActive(
+                    formTransformations.Contains(value)
+                );
         }
 
         private void DrawInteraction()

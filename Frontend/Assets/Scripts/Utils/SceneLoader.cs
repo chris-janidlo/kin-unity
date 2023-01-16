@@ -7,7 +7,8 @@ namespace Utils
 {
     public class SceneLoader : MonoBehaviour
     {
-        [FormerlySerializedAs("Scene")] public SceneField scene;
+        [FormerlySerializedAs("Scene")]
+        public SceneField scene;
 
         public void LoadScene()
         {

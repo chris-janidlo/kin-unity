@@ -16,7 +16,10 @@ namespace Decisions
         private UniTaskCompletionSource<GameState> _currentTcs;
 
         // TODO: use cancellation token
-        public override UniTask<GameState> DecideMove(GameState currentState, CancellationToken token)
+        public override UniTask<GameState> DecideMove(
+            GameState currentState,
+            CancellationToken token
+        )
         {
             playerDecisionNeeded.Raise(currentState);
 

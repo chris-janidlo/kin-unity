@@ -10,8 +10,11 @@ namespace GameUI
         [FormerlySerializedAs("TitleTemplate")]
         public string titleTemplate;
 
-        [FormerlySerializedAs("Contents")] public GameObject contents;
-        [FormerlySerializedAs("Title")] public TextMeshProUGUI title;
+        [FormerlySerializedAs("Contents")]
+        public GameObject contents;
+
+        [FormerlySerializedAs("Title")]
+        public TextMeshProUGUI title;
 
         private void Start()
         {

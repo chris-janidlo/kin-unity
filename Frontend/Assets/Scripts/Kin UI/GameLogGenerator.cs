@@ -8,13 +8,17 @@ namespace Kin_UI
     public class GameLogGenerator : ScriptableObject
     {
         [FormerlySerializedAs("PieceStateFormat")]
-        [Tooltip("Expects the following placeholders: {0}, which will be replaced with the piece's position, " +
-                 "and {1}, which will be replaced with the name of its form.")]
+        [Tooltip(
+            "Expects the following placeholders: {0}, which will be replaced with the piece's position, "
+                + "and {1}, which will be replaced with the name of its form."
+        )]
         public string pieceStateFormat;
 
         [FormerlySerializedAs("PieceMoveLogFormat")]
-        [Tooltip("Expects the following placeholders: {0}, which will be replaced with the piece's initial state, " +
-                 "and {1}, which will be replaced with its final state.")]
+        [Tooltip(
+            "Expects the following placeholders: {0}, which will be replaced with the piece's initial state, "
+                + "and {1}, which will be replaced with its final state."
+        )]
         public string pieceMoveLogFormat;
 
         public string GetLogEntryForAction(GameState oldState, GameState newState)
@@ -25,7 +29,11 @@ namespace Kin_UI
             {
                 var finalPieceState = newState.GetPieceById(initialPieceState.ID).Value;
                 result += "\n";
-                result += string.Format(pieceMoveLogFormat, PieceState(initialPieceState), PieceState(finalPieceState));
+                result += string.Format(
+                    pieceMoveLogFormat,
+                    PieceState(initialPieceState),
+                    PieceState(finalPieceState)
+                );
             }
 
             return result;

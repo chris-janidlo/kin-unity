@@ -8,10 +8,11 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-orange")]
     [AddComponentMenu("Unity Atoms/Listeners/GameStatePair Event Reference Listener")]
-    public sealed class GameStatePairEventReferenceListener : AtomEventReferenceListener<
-        GameStatePair,
-        GameStatePairEvent,
-        GameStatePairEventReference,
-        GameStatePairUnityEvent>
-    { }
+    public sealed class GameStatePairEventReferenceListener
+        : AtomEventReferenceListener<
+            GameStatePair,
+            GameStatePairEvent,
+            GameStatePairEventReference,
+            GameStatePairUnityEvent
+        > { }
 }

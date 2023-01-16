@@ -35,13 +35,8 @@ repos:
         args: ["--manifest-path", "AI/Cargo.toml"]
         pass_filenames: false
 
-    #   in VS Code, this is turned off via the SKIP environment variable due to poor
-    #   performance (takes ~8 seconds to run). see .vscode/settings.json and:
-    #       https://github.com/dotnet/format/issues/757
-    #       https://github.com/dotnet/format/issues/1378
-    -   id: dotnet-format
-        name: dotnet format
+    -   id: csharpier
+        name: csharpier
         language: system
         types: ["c#"]
-        entry: dotnet format
-        args: ["Frontend/Frontend.sln", "--include"]
+        entry: dotnet-csharpier

@@ -8,7 +8,12 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-lush")]
     [CreateAssetMenu(menuName = "Unity Atoms/Variables/ADecider", fileName = "ADeciderVariable")]
-    public sealed class ADeciderVariable : EquatableAtomVariable<ADecider, ADeciderPair, ADeciderEvent, ADeciderPairEvent, ADeciderADeciderFunction>
-    {
-    }
+    public sealed class ADeciderVariable
+        : EquatableAtomVariable<
+            ADecider,
+            ADeciderPair,
+            ADeciderEvent,
+            ADeciderPairEvent,
+            ADeciderADeciderFunction
+        > { }
 }

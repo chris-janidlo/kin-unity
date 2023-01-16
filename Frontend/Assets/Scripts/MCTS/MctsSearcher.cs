@@ -24,7 +24,9 @@ namespace MCTS
 
         public GameState Search(GameState startingState, Action<float> setProgress)
         {
-            var root = _previousChoice?.ChildWithState(startingState) ?? new MctsNode(startingState, _searchParameters);
+            var root =
+                _previousChoice?.ChildWithState(startingState)
+                ?? new MctsNode(startingState, _searchParameters);
             root.Detach();
             root.Expand(); // always need at least one level expanded from the root
 
@@ -43,11 +45,13 @@ namespace MCTS
         private static MctsNode Traverse(MctsNode root)
         {
             var node = root;
-            while (!node.IsLeaf) node = node.ExplorationCandidate();
+            while (!node.IsLeaf)
+                node = node.ExplorationCandidate();
 
             // terminal nodes are essentially rollouts that are decided instantly.
             // https://ai.stackexchange.com/a/6993/53886 has ideas for improvements here
-            if (node.Visits == 0 || node.IsTerminalState) return node;
+            if (node.Visits == 0 || node.IsTerminalState)
+                return node;
 
             node.Expand();
             // technically all children will have the highest possible exploration score of infinity due to never
@@ -58,11 +62,10 @@ namespace MCTS
         private float Rollout(MctsNode node)
         {
             var state = node.GameState;
-            while (!state.IsLossState) state = RolloutPolicy(state.LegalFutureStates());
+            while (!state.IsLossState)
+                state = RolloutPolicy(state.LegalFutureStates());
 
-            return state.CurrentPlayer == Player
-                ? -1
-                : 1;
+            return state.CurrentPlayer == Player ? -1 : 1;
         }
 
         private GameState RolloutPolicy(IEnumerable<GameState> options)

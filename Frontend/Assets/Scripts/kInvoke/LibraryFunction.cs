@@ -13,20 +13,22 @@ namespace kInvoke
         {
             get
             {
-                if (_cache != null) return _cache;
+                if (_cache != null)
+                    return _cache;
 
                 LibraryImportAttribute attribute;
                 try
                 {
-                    attribute = (LibraryImportAttribute)typeof(TDelegate)
-                        .GetCustomAttributes(typeof(LibraryImportAttribute), false)
-                        .Single();
+                    attribute = (LibraryImportAttribute)
+                        typeof(TDelegate)
+                            .GetCustomAttributes(typeof(LibraryImportAttribute), false)
+                            .Single();
                 }
                 catch (InvalidOperationException)
                 {
                     var message =
-                        $"must supply a {nameof(LibraryImportAttribute)} " +
-                        $"in order to call {typeof(TDelegate).Name}";
+                        $"must supply a {nameof(LibraryImportAttribute)} "
+                        + $"in order to call {typeof(TDelegate).Name}";
 
                     throw new MissingLibraryImportAttribute(message);
                 }

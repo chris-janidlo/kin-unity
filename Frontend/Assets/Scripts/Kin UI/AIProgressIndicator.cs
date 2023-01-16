@@ -8,7 +8,8 @@ namespace Kin_UI
 {
     public class AIProgressIndicator : MonoBehaviour
     {
-        [FormerlySerializedAs("BaseText")] public string baseText;
+        [FormerlySerializedAs("BaseText")]
+        public string baseText;
 
         [FormerlySerializedAs("RepeatingText")]
         public string repeatingText;
@@ -19,7 +20,8 @@ namespace Kin_UI
         [FormerlySerializedAs("TextContainer")]
         public TextMeshProUGUI textContainer;
 
-        [FormerlySerializedAs("AIDecider")] public AIDecider aiDecider;
+        [FormerlySerializedAs("AIDecider")]
+        public AIDecider aiDecider;
 
         private void Update()
         {

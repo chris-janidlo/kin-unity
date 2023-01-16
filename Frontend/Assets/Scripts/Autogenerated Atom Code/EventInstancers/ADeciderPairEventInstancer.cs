@@ -8,5 +8,6 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-sign-blue")]
     [AddComponentMenu("Unity Atoms/Event Instancers/ADeciderPair Event Instancer")]
-    public class ADeciderPairEventInstancer : AtomEventInstancer<ADeciderPair, ADeciderPairEvent> { }
+    public class ADeciderPairEventInstancer
+        : AtomEventInstancer<ADeciderPair, ADeciderPairEvent> { }
 }

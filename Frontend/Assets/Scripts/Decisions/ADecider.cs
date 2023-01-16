@@ -13,6 +13,9 @@ namespace Decisions
             return base.Equals(other);
         }
 
-        public abstract UniTask<GameState> DecideMove(GameState currentState, CancellationToken token);
+        public abstract UniTask<GameState> DecideMove(
+            GameState currentState,
+            CancellationToken token
+        );
     }
 }

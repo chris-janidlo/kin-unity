@@ -9,7 +9,7 @@ Project Structure:
     * For building, `cargo make` is strongly recommended
 * `pre-commit` - not strictly necessary for hacking, but expected to be run on every commit. The hooks in this repo depend on:
     * Rust again (with the added requirement of a nightly toolchain, to run `fmt`)
-    * the `dotnet` CLI, with the .NET SDK version specified in [`global.json`](global.json)
+    * `csharpier`, for opinionated C# formatting
 
 # Building
 

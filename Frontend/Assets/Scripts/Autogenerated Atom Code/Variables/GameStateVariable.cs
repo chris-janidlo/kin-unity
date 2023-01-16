@@ -8,5 +8,12 @@ namespace UnityAtoms.LDJ50
     /// </summary>
     [EditorIcon("atom-icon-lush")]
     [CreateAssetMenu(menuName = "Unity Atoms/Variables/GameState", fileName = "GameStateVariable")]
-    public sealed class GameStateVariable : EquatableAtomVariable<GameState, GameStatePair, GameStateEvent, GameStatePairEvent, GameStateGameStateFunction> { }
+    public sealed class GameStateVariable
+        : EquatableAtomVariable<
+            GameState,
+            GameStatePair,
+            GameStateEvent,
+            GameStatePairEvent,
+            GameStateGameStateFunction
+        > { }
 }

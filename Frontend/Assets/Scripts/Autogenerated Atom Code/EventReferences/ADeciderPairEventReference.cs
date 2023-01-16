@@ -7,11 +7,13 @@ namespace UnityAtoms.LDJ50
     /// Event Reference of type `ADeciderPair`. Inherits from `AtomEventReference&lt;ADeciderPair, ADeciderVariable, ADeciderPairEvent, ADeciderVariableInstancer, ADeciderPairEventInstancer&gt;`.
     /// </summary>
     [Serializable]
-    public sealed class ADeciderPairEventReference : AtomEventReference<
-        ADeciderPair,
-        ADeciderVariable,
-        ADeciderPairEvent,
-        ADeciderVariableInstancer,
-        ADeciderPairEventInstancer>, IGetEvent
-    { }
+    public sealed class ADeciderPairEventReference
+        : AtomEventReference<
+            ADeciderPair,
+            ADeciderVariable,
+            ADeciderPairEvent,
+            ADeciderVariableInstancer,
+            ADeciderPairEventInstancer
+        >,
+            IGetEvent { }
 }

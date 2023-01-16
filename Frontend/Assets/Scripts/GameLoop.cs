@@ -9,9 +9,14 @@ using GameUI;
 
 public class GameLoop : MonoBehaviour
 {
-    [FormerlySerializedAs("BlueDecider")] public ADeciderVariable blueDecider;
-    [FormerlySerializedAs("RedDecider")] public ADeciderVariable redDecider;
-    [FormerlySerializedAs("DecisionMade")] public GameStatePairEvent decisionMade;
+    [FormerlySerializedAs("BlueDecider")]
+    public ADeciderVariable blueDecider;
+
+    [FormerlySerializedAs("RedDecider")]
+    public ADeciderVariable redDecider;
+
+    [FormerlySerializedAs("DecisionMade")]
+    public GameStatePairEvent decisionMade;
 
     [FormerlySerializedAs("GameOverOverlay")]
     public GameOverOverlay gameOverOverlay;
@@ -29,9 +34,8 @@ public class GameLoop : MonoBehaviour
 
         while (!_gameState.IsLossState && _gameState.LegalFutureStates().Any())
         {
-            var nextDecider = _gameState.CurrentPlayer == Player.Blue
-                ? blueDecider.Value
-                : redDecider.Value;
+            var nextDecider =
+                _gameState.CurrentPlayer == Player.Blue ? blueDecider.Value : redDecider.Value;
             var newState = await nextDecider.DecideMove(_gameState, token);
 
             decisionMade.Raise(new GameStatePair { Item1 = _gameState, Item2 = newState });

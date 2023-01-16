@@ -1,4 +1,5 @@
 using Core_Rules;
+
 namespace UnityAtoms.LDJ50
 {
     /// <summary>

@@ -1,3 +1,3 @@
 .PHONY: lint
 lint:
-	dotnet format Frontend.sln
+	dotnet-csharpier Assets/Scripts
