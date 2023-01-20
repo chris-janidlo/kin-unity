@@ -25,7 +25,7 @@ repos:
         language: system
         types: ["rust"]
         entry: cargo +nightly fmt
-        args: ["--manifest-path", "AI/Cargo.toml", "--"]
+        args: ["--manifest-path", "AI/Cargo.toml", "--all", "--"]
 
     -   id: cargo-clippy
         name: cargo clippy

@@ -1,17 +1,9 @@
-[package]
-name = "kin_ai"
-version = "0.1.0"
+[workspace]
+members = ["crates/*"]
+
+[workspace.package]
 edition = "2021"
+authors = ["Chris Janidlo"]
 
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
-glam = { version = "0.22.0", features = ["serde", "approx", "rand", "debug-glam-assert"] }
-indextree = { version = "4.5.0", features = ["serde", "deser"] }
-ndarray = { version = "0.15.6", features = ["serde"] }
-rand = "0.8.5"
-serde = { version = "1.0.152", features = ["derive"] }
-
-[dev-dependencies]
+[workspace.dependencies]
 rstest = "0.16.0"

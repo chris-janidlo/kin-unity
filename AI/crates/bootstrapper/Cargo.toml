@@ -1,0 +1,11 @@
+[package]
+name = "bootstrapper"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dev-dependencies]
+rstest = { workspace = true }
