@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Sphere Grid Playground.unity
+    guid: 94e2a4397b1182a4daaf414fb1002f6a
+  - enabled: 1
     path: Assets/Scenes/Menu.unity
     guid: 114b4780fc0e549b2b913d79d49d0433
   - enabled: 1

@@ -65,9 +65,10 @@ sysinfo.txt
 ehthumbs.db
 Thumbs.db
 
-# Built AI dynamic libraries
-/*.dll*
-/*.bundle*
+# Built AI files
+*.dll*
+*.bundle*
+ai_server*
 
 # Unity-generated .vscode folder (prefer the one at repository root)
 .vscode/
