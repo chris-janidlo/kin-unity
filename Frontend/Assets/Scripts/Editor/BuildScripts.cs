@@ -30,28 +30,34 @@ namespace Editor
 
         private static void PostBuildWindows(string pathToBuiltProject)
         {
-            const string filename = "KinAI.dll";
+            string[] filenames = { "bootstrapper.dll", "ai_server" };
 
-            var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
-            var buildDirectory = Directory.GetParent(pathToBuiltProject)!.FullName;
+            foreach (var filename in filenames)
+            {
+                var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
+                var buildDirectory = Directory.GetParent(pathToBuiltProject)!.FullName;
 
-            var sourcePath = Path.Combine(projectDirectory, filename);
-            var destPath = Path.Combine(buildDirectory, filename);
+                var sourcePath = Path.Combine(projectDirectory, filename);
+                var destPath = Path.Combine(buildDirectory, filename);
 
-            Debug.Log($"Copying {sourcePath} to {destPath}");
-            File.Copy(sourcePath, destPath, true);
+                Debug.Log($"Copying {sourcePath} to {destPath}");
+                File.Copy(sourcePath, destPath, true);
+            }
         }
 
         private static void PostBuildMac(string pathToBuiltProject)
         {
-            const string filename = "KinAI.bundle";
+            string[] filenames = { "bootstrapper.bundle", "ai_server" };
 
-            var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
-            var sourcePath = Path.Combine(projectDirectory, filename);
-            var destPath = Path.Combine(pathToBuiltProject, filename);
+            foreach (var filename in filenames)
+            {
+                var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
+                var sourcePath = Path.Combine(projectDirectory, filename);
+                var destPath = Path.Combine(pathToBuiltProject, filename);
 
-            Debug.Log($"Copying {sourcePath} to {destPath}");
-            File.Copy(sourcePath, destPath, true);
+                Debug.Log($"Copying {sourcePath} to {destPath}");
+                File.Copy(sourcePath, destPath, true);
+            }
         }
     }
 }

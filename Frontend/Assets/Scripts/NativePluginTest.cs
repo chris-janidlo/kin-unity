@@ -1,4 +1,7 @@
 using System.Collections;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using kInvoke;
 using TMPro;
 using UnityEngine;
@@ -9,16 +12,33 @@ public class NativePluginTest : MonoBehaviour
 
     private IEnumerator Start()
     {
-        var i = 0;
+        var port = LibraryFunction<launch_server>.Invoke();
+
+        Debug.Log(port);
+
+        var tcpClient = new TcpClient();
+        tcpClient.Connect(IPAddress.Loopback, port);
+        var stream = tcpClient.GetStream();
+
+        var encoding = new ASCIIEncoding();
+        var command = encoding.GetBytes("\"go\"");
+
+        var buffer = new byte[1];
+
         while (true)
         {
-            text.text = LibraryFunction<mul_by_5>.Invoke(i++).ToString();
+            stream.Write(command);
+            stream.Read(buffer);
+            var response = buffer[0];
+
+            text.text = response.ToString();
+            yield return new WaitForSeconds(1);
+
+            text.text = "";
             yield return new WaitForSeconds(1);
         }
-        // ReSharper disable once IteratorNeverReturns
     }
 
-    // ReSharper disable once InconsistentNaming
-    [LibraryImport("KinAI")]
-    private delegate int mul_by_5(int i);
+    [LibraryImport("bootstrapper")]
+    private delegate int launch_server();
 }

@@ -1,35 +1,33 @@
-use std::net::*;
+use std::{io::Write, net::*};
 
 use anyhow::Result;
-use log::*;
 use serde_json::{Deserializer, Value};
 
-const SERVER_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
-const PORT: u16 = 1370; // hard coded for now. eventually want to grab a random open port and return that to the parent process
-
 pub fn start() -> Result<()> {
-    let addr = SocketAddr::new(SERVER_IP, PORT);
-
-    info!("listening on {addr}");
+    let addr = SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0);
 
     let listener = TcpListener::bind(addr)?;
+    let port = listener.local_addr()?.port();
+
+    // pad to 5 places for convenience on reader side
+    println!("{port:05}");
 
     for stream in listener.incoming() {
-        info!("got connection!");
-        echo(stream?)?;
-        info!("end connection handling");
+        handle(stream?)?;
     }
 
     Ok(())
 }
 
-fn echo(stream: TcpStream) -> Result<()> {
+fn handle(stream: TcpStream) -> Result<()> {
+    let mut clone = stream.try_clone()?;
     let de = Deserializer::from_reader(stream);
 
-    for value in de.into_iter::<Value>() {
-        info!("got value!");
-        info!("{}", value?);
-        info!("end value handling");
+    let mut buf: [u8; 1] = [0];
+
+    for _recvd in de.into_iter::<Value>() {
+        buf[0] = rand::random();
+        clone.write_all(&buf)?;
     }
 
     Ok(())
