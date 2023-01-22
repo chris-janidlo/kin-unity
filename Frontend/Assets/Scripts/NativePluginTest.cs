@@ -2,17 +2,28 @@ using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using kInvoke;
 using TMPro;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class NativePluginTest : MonoBehaviour
 {
+    [DllImport("bootstrapper")]
+    private static extern int open_server();
+
+    [DllImport("bootstrapper")]
+    private static extern void close_server(int pid);
+
+    [DllImport("bootstrapper")]
+    private static extern int get_tcp_port(int pid);
+
     public TextMeshProUGUI text;
 
     private IEnumerator Start()
     {
-        var port = LibraryFunction<launch_server>.Invoke();
+        var pid = open_server();
+
+        var port = get_tcp_port(pid);
 
         Debug.Log(port);
 
@@ -25,7 +36,7 @@ public class NativePluginTest : MonoBehaviour
 
         var buffer = new byte[1];
 
-        while (true)
+        for (int _ = 0; _ < 10; _++)
         {
             stream.Write(command);
             stream.Read(buffer);
@@ -37,8 +48,9 @@ public class NativePluginTest : MonoBehaviour
             text.text = "";
             yield return new WaitForSeconds(1);
         }
-    }
 
-    [LibraryImport("bootstrapper")]
-    private delegate int launch_server();
+        text.text = "done";
+
+        close_server(pid);
+    }
 }

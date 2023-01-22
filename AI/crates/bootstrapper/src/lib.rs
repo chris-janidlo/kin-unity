@@ -1,44 +1,101 @@
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 use std::{
+    cell::RefCell,
+    collections::HashMap,
     env::current_dir,
     io::Read,
-    os::windows::process::CommandExt,
     process::{Child, Command, Stdio},
 };
 
-// TODO: make a custom panic handler that doesn't crash Unity
-// TODO: add a kill_server function to be called when exiting Play Mode
+// TODO: better error handling - log some human readable info in a file somwhere, and only then panic
+// FIXME: crashes in built macOS app (works in editor though)
 
-/// Launches an `ai_server` process, returning the port number the process listens on.
+thread_local! {
+    static PROC_MAP: RefCell<HashMap<u32, Child>> = RefCell::new(Default::default());
+}
+
+/// Launches an `ai_server` process, returning its PID.
 #[no_mangle]
-pub extern "C" fn launch_server() -> i32 {
+pub extern "C" fn open_server() -> u32 {
     let mut server_path = current_dir().expect("should be able to access current directory");
     server_path.push("ai_server");
 
-    // for Windows: prevent new window from opening
-    const CREATE_NO_WINDOW: u32 = 0x08000000;
+    let mut command = Command::new(server_path);
+    command.stdout(Stdio::piped());
 
-    let server_proc = Command::new(server_path)
-        .creation_flags(CREATE_NO_WINDOW)
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("should be able to launch process");
+    #[cfg(windows)]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
 
-    read_port_number(server_proc)
+    let server_proc = command.spawn().expect("should be able to launch process");
+
+    let pid = server_proc.id();
+
+    PROC_MAP.with(|map| map.borrow_mut().insert(pid, server_proc));
+
+    pid
 }
 
-/// Reads server_proc's stdout to determine what port it's listening on.
-fn read_port_number(server_proc: Child) -> i32 {
-    // server always pads port output to 5 places
+/// Retrieves the TCP port from an `ai_server` process, as delimited by PID.
+// TODO: allow consumers to call this more than once for the same PID without crashing?
+#[no_mangle]
+pub extern "C" fn get_tcp_port(pid: u32) -> u32 {
+    let mut port: u32 = 0;
+
+    PROC_MAP.with(|map| {
+        if let Some(proc) = map.borrow_mut().get_mut(&pid) {
+            let mut stream = proc
+                .stdout
+                .take()
+                .expect("stdout should be set up and readable");
+
+            port = read_port_number(&mut stream);
+        } else {
+            panic!("PID should be valid");
+        }
+    });
+
+    port
+}
+
+/// Closes a given `ai_server` process by PID.
+#[no_mangle]
+pub extern "C" fn close_server(pid: u32) {
+    PROC_MAP.with(|map| {
+        if let Some(mut proc) = map.borrow_mut().remove(&pid) {
+            proc.kill().expect("should be able to kill this process");
+        }
+    });
+}
+
+/// Close every open `ai_server` process that was spawned from this thread.
+#[no_mangle]
+pub extern "C" fn close_all() {
+    PROC_MAP.with(|map| {
+        for (_, mut proc) in map.borrow_mut().drain() {
+            proc.kill().expect("should be able to kill this process");
+        }
+    })
+}
+
+/// Reads a port number from a stream that only has a port number to read.
+///
+/// # Arguments
+///
+/// * `stream` - Any readable stream that has a port number. Is expected to have exactly
+///   5 bytes of data to read, with left-padded 0s as necessary.
+fn read_port_number(stream: &mut impl Read) -> u32 {
     let mut buf = [0; 5];
 
-    server_proc
-        .stdout
-        .expect("stdout should be set up and readable")
+    stream
         .read_exact(&mut buf)
-        .expect("should be able to read from stdout");
+        .expect("should be able to read from stream");
 
     std::str::from_utf8(&buf)
-        .expect("stdout should be utf8 encoded")
-        .parse::<i32>()
+        .expect("stream should be utf8 encoded")
+        .parse::<u32>()
         .expect("message should be in integer form")
 }
