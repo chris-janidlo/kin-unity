@@ -1,37 +1,38 @@
 # make everything phony:
 MAKEFLAGS += --always-make
 
-BIN_EXT=
+# we could differentiate these by CPU architecture in addition to OS, especially since
+# Unity parses the Plugin directory structure by CPU arch rather than by OS, but for now
+# I'm assuming that the builder worker machines will always match the target OS/arch, so
+# that builder machines can just blindly copy the binaries they build.
+AI_SERVER_SRC=$(error AI_SERVER_SRC must be overridden. hint: target/release/ai_server...)
+AI_SERVER_DEST=$(error AI_SERVER_DEST must be overridden. hint: ../Frontend/ai_server...)
 
-LIB_SRC_PRE=
-LIB_SRC_EXT=
-LIB_DEST_EXT=
+BOOTSTRAPPER_SRC=$(error BOOTSTRAPPER_SRC must be overridden. hint: target/release/bootstrapper...)
+BOOTSTRAPPER_DEST=$(error BOOTSTRAPPER_DEST must be overridden. hint: ../Frontend/Assets/Plugins/bootstrapper...)
 
 ifeq ($(OS),Windows_NT)
-    BIN_EXT=exe
-	LIB_SRC_EXT=dll
-	LIB_DEST_EXT=dll
+	include platform-make-directives/windows.mk
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
-		$(error linux not yet supported)
-    endif
-    ifeq ($(UNAME_S),Darwin)
-		LIB_SRC_PRE=lib
-		LIB_SRC_EXT=dylib
-		LIB_DEST_EXT=bundle
+		include platform-make-directives/linux.mk
+    else ifeq ($(UNAME_S),Darwin)
+		include platform-make-directives/mac.mk
+	else
+		$(error unsupported OS)
     endif
 endif
 
 build-bootstrapper-to-frontend:
 	cargo build -r -p bootstrapper
-	cp target/release/${LIB_SRC_PRE}bootstrapper.${LIB_SRC_EXT} ../Frontend/bootstrapper.${LIB_DEST_EXT}
+	cp ${BOOTSTRAPPER_SRC} ${BOOTSTRAPPER_DEST}
 
 build-ai_server-to-frontend:
 	cargo build -r -p ai_server
-	cp target/release/ai_server.${BIN_EXT} ../Frontend/ai_server
+	cp ${AI_SERVER_SRC} ${AI_SERVER_DEST}
 
-build-to-frontend: build-bootstrapper-to-frontend build-ai_server-to-frontend
+build-everything-to-frontend: build-bootstrapper-to-frontend build-ai_server-to-frontend
 
 lint: clippy-fix format
 format:
