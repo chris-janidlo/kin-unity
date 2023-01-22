@@ -68,6 +68,7 @@ Thumbs.db
 # Built AI files
 *.dll*
 *.bundle*
+*.dylib*
 ai_server*
 
 # Unity-generated .vscode folder (prefer the one at repository root)
