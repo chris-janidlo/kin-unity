@@ -9,3 +9,6 @@ crate-type = ["cdylib"]
 
 [dev-dependencies]
 rstest = { workspace = true }
+
+[dependencies]
+anyhow = "1.0.68"
