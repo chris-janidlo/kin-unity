@@ -3,13 +3,14 @@ use std::os::windows::process::CommandExt;
 use std::{
     cell::RefCell,
     collections::HashMap,
-    env::current_dir,
+    env::current_exe,
+    fs,
     io::Read,
+    path::PathBuf,
     process::{Child, Command, Stdio},
 };
 
 // TODO: better error handling - log some human readable info in a file somwhere, and only then panic
-// FIXME: crashes in built macOS app (works in editor though)
 
 thread_local! {
     static PROC_MAP: RefCell<HashMap<u32, Child>> = RefCell::new(Default::default());
@@ -18,10 +19,7 @@ thread_local! {
 /// Launches an `ai_server` process, returning its PID.
 #[no_mangle]
 pub extern "C" fn open_server() -> u32 {
-    let mut server_path = current_dir().expect("should be able to access current directory");
-    server_path.push("ai_server");
-
-    let mut command = Command::new(server_path);
+    let mut command = Command::new(get_server_path());
     command.stdout(Stdio::piped());
 
     #[cfg(windows)]
@@ -98,4 +96,28 @@ fn read_port_number(stream: &mut impl Read) -> u32 {
         .expect("stream should be utf8 encoded")
         .parse::<u32>()
         .expect("message should be in integer form")
+}
+
+fn get_server_path() -> PathBuf {
+    let finding = fs::read_dir("./")
+        .expect("should be able to read current directory")
+        .find_map(|dir_entry| {
+            let de = dir_entry.expect("should be able to inspect dir_entry");
+
+            if de.file_name() == "ai_server" {
+                Some(de.path())
+            } else {
+                None
+            }
+        });
+
+    if let Some(path) = finding {
+        path
+    } else if cfg!(macos) {
+        let mut path = current_exe().expect("should be able to get running macOS app");
+        path.push("ai_server");
+        path
+    } else {
+        panic!("can't find ai_server")
+    }
 }
