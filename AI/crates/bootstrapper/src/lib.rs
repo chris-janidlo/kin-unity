@@ -28,7 +28,6 @@ pub extern "C" fn open_server() -> i64 {
 }
 
 /// Retrieves the TCP port from an `ai_server` process, as delimited by PID.
-// TODO: allow consumers to call this more than once for the same PID without crashing?
 #[no_mangle]
 pub extern "C" fn get_tcp_port(pid: u32) -> i64 {
     match get_tcp_port_impl(pid) {
@@ -134,8 +133,9 @@ fn close_all_impl() -> Result<()> {
 ///
 /// # Arguments
 ///
-/// * `stream` - Any readable stream that has a port number. Is expected to have exactly
-///   5 bytes of data to read, with left-padded 0s as necessary.
+/// * `stream` - Any readable stream that has a port number, which is expected to have
+///   exactly 5 bytes of data to read, with left-padded 0s as necessary.
+// TODO: allow consumers to call this more than once for the same PID without crashing?
 fn read_port_number(stream: &mut impl Read) -> Result<u32> {
     let mut buf = [0; 5];
 
@@ -149,6 +149,9 @@ fn read_port_number(stream: &mut impl Read) -> Result<u32> {
         .context("message should be in integer form")
 }
 
+/// Returns the full path to the `ai_server` executable. In macOS it's assumed to be
+/// inside the current app folder, otherwise it's assumed to be in the same directory as
+/// the current process.
 fn get_server_path() -> Result<PathBuf> {
     let paths = read_dir("./").context("should be able to read current directory")?;
 
