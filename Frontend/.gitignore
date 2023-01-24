@@ -71,5 +71,8 @@ Thumbs.db
 *.dylib*
 ai_server*
 
+# AI crash dumps
+ai_bootstrap_crash_*
+
 # Unity-generated .vscode folder (prefer the one at repository root)
 .vscode/
