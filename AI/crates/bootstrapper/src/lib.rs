@@ -149,9 +149,10 @@ fn read_port_number(stream: &mut impl Read) -> Result<u32> {
         .context("message should be in integer form")
 }
 
-/// Returns the full path to the `ai_server` executable. In macOS it's assumed to be
-/// inside the current app folder, otherwise it's assumed to be in the same directory as
-/// the current process.
+/// Returns the full path to the `ai_server` executable. It's assumed to be in the same
+/// folder as the running process. If it isn't found there and we're on macOS, we check
+/// inside the current app folder as well; either way, if we don't find it, we return an
+/// error.
 fn get_server_path() -> Result<PathBuf> {
     let paths = read_dir("./").context("should be able to read current directory")?;
 
