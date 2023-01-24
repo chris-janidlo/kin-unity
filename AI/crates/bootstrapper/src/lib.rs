@@ -122,7 +122,7 @@ fn dump(err: Error) -> i64 {
 
             if let Ok(mut file) = File::create(path) {
                 // use _ to ignore result
-                let _ = write!(file, "{err}");
+                let _ = write!(file, "{err:?}");
             }
         }
     }
