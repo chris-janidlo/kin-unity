@@ -27,52 +27,6 @@ pub extern "C" fn open_server() -> i64 {
     }
 }
 
-/// Retrieves the TCP port from an `ai_server` process, as delimited by PID.
-#[no_mangle]
-pub extern "C" fn get_tcp_port(pid: u32) -> i64 {
-    match get_tcp_port_impl(pid) {
-        Ok(o) => o as i64,
-        Err(e) => dump(e),
-    }
-}
-
-/// Closes a given `ai_server` process by PID.
-#[no_mangle]
-pub extern "C" fn close_server(pid: u32) -> i64 {
-    match close_server_impl(pid) {
-        Ok(_) => 1,
-        Err(e) => dump(e),
-    }
-}
-
-/// Close every open `ai_server` process that was spawned from this thread.
-#[no_mangle]
-pub extern "C" fn close_all() -> i64 {
-    match close_all_impl() {
-        Ok(_) => 1,
-        Err(e) => dump(e),
-    }
-}
-
-fn dump(err: Error) -> i64 {
-    // since we're in an error handling function, give up without complaint if anything goes wrong
-    if let Ok(mut path) = current_dir() {
-        if let Ok(duration) = SystemTime::now().duration_since(UNIX_EPOCH) {
-            let timestamp = duration.as_secs();
-            let filename = format!("ai_bootstrap_crash_{timestamp}.log");
-
-            path.push(filename);
-
-            if let Ok(mut file) = File::create(path) {
-                // use _ to ignore result
-                let _ = write!(file, "{err}");
-            }
-        }
-    }
-
-    -1
-}
-
 fn open_server_impl() -> Result<u32> {
     let mut command = Command::new(get_server_path()?);
     command.stdout(Stdio::piped());
@@ -94,6 +48,16 @@ fn open_server_impl() -> Result<u32> {
     Ok(pid)
 }
 
+/// Retrieves the TCP port from an `ai_server` process, as delimited by PID.
+/// Errors if called twice with the same PID.
+#[no_mangle]
+pub extern "C" fn get_tcp_port(pid: u32) -> i64 {
+    match get_tcp_port_impl(pid) {
+        Ok(o) => o as i64,
+        Err(e) => dump(e),
+    }
+}
+
 fn get_tcp_port_impl(pid: u32) -> Result<u32> {
     PROC_MAP.with(|map| {
         if let Some(proc) = map.borrow_mut().get_mut(&pid) {
@@ -109,6 +73,15 @@ fn get_tcp_port_impl(pid: u32) -> Result<u32> {
     })
 }
 
+/// Closes a given `ai_server` process by PID.
+#[no_mangle]
+pub extern "C" fn close_server(pid: u32) -> i64 {
+    match close_server_impl(pid) {
+        Ok(_) => 1,
+        Err(e) => dump(e),
+    }
+}
+
 fn close_server_impl(pid: u32) -> Result<()> {
     PROC_MAP.with(|map| {
         if let Some(mut proc) = map.borrow_mut().remove(&pid) {
@@ -117,6 +90,15 @@ fn close_server_impl(pid: u32) -> Result<()> {
             Err(anyhow!("PID {pid} is not known to this thread"))
         }
     })
+}
+
+/// Close every open `ai_server` process that was spawned from this thread.
+#[no_mangle]
+pub extern "C" fn close_all() -> i64 {
+    match close_all_impl() {
+        Ok(_) => 1,
+        Err(e) => dump(e),
+    }
 }
 
 fn close_all_impl() -> Result<()> {
@@ -129,13 +111,31 @@ fn close_all_impl() -> Result<()> {
     })
 }
 
+fn dump(err: Error) -> i64 {
+    // since we're in an error handling function, give up without complaint if anything goes wrong
+    if let Ok(mut path) = current_dir() {
+        if let Ok(duration) = SystemTime::now().duration_since(UNIX_EPOCH) {
+            let timestamp = duration.as_secs();
+            let filename = format!("ai_bootstrap_crash_{timestamp}.log");
+
+            path.push(filename);
+
+            if let Ok(mut file) = File::create(path) {
+                // use _ to ignore result
+                let _ = write!(file, "{err}");
+            }
+        }
+    }
+
+    -1
+}
+
 /// Reads a port number from a stream that only has a port number to read.
 ///
 /// # Arguments
 ///
 /// * `stream` - Any readable stream that has a port number, which is expected to have
 ///   exactly 5 bytes of data to read, with left-padded 0s as necessary.
-// TODO: allow consumers to call this more than once for the same PID without crashing?
 fn read_port_number(stream: &mut impl Read) -> Result<u32> {
     let mut buf = [0; 5];
 
