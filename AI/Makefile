@@ -5,8 +5,8 @@ MAKEFLAGS += --always-make
 # Unity parses the Plugin directory structure by CPU arch rather than by OS, but for now
 # I'm assuming that the builder worker machines will always match the target OS/arch, so
 # that builder machines can just blindly copy the binaries they build.
-AI_SERVER_SRC=$(error AI_SERVER_SRC must be overridden. hint: target/release/ai_server...)
-AI_SERVER_DEST=$(error AI_SERVER_DEST must be overridden. hint: ../Frontend/ai_server...)
+AI_SERVER_SRC=$(error AI_SERVER_SRC must be overridden. hint: target/release/server...)
+AI_SERVER_DEST=$(error AI_SERVER_DEST must be overridden. hint: ../Frontend/server...)
 
 BOOTSTRAPPER_SRC=$(error BOOTSTRAPPER_SRC must be overridden. hint: target/release/bootstrapper...)
 BOOTSTRAPPER_DEST=$(error BOOTSTRAPPER_DEST must be overridden. hint: ../Frontend/Assets/Plugins/bootstrapper...)
@@ -28,11 +28,11 @@ build-bootstrapper-to-frontend:
 	cargo build -r -p bootstrapper
 	cp ${BOOTSTRAPPER_SRC} ${BOOTSTRAPPER_DEST}
 
-build-ai_server-to-frontend:
-	cargo build -r -p ai_server
+build-server-to-frontend:
+	cargo build -r -p server
 	cp ${AI_SERVER_SRC} ${AI_SERVER_DEST}
 
-build-everything-to-frontend: build-bootstrapper-to-frontend build-ai_server-to-frontend
+build-all-to-frontend: build-bootstrapper-to-frontend build-server-to-frontend
 
 lint: clippy-fix format
 format:

@@ -5,9 +5,9 @@ mod direction;
 mod grid;
 
 use glam::*;
+use mcts::GameState;
 
 use self::{direction::Direction, grid::Grid};
-use crate::game_state::GameState;
 
 #[derive(PartialEq)]
 pub struct SpiceState {

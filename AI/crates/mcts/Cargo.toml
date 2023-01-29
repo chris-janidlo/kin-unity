@@ -1,0 +1,13 @@
+[package]
+name = "mcts"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+rstest = { workspace = true }
+
+[dependencies]
+rand = { workspace = true }
+indextree = { version = "4.5.0", features = ["serde", "deser"] }
+serde = { workspace = true }
