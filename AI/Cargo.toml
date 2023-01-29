@@ -7,3 +7,5 @@ authors = ["Chris Janidlo"]
 
 [workspace.dependencies]
 rstest = "0.16.0"
+rand = "0.8.5"
+serde = { version = "1.0.152", features = ["derive"] }
