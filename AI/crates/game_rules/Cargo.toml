@@ -12,3 +12,5 @@ glam = { version = "0.22.0", features = ["serde", "approx", "rand", "debug-glam-
 rand = { workspace = true }
 ndarray = { version = "0.15.6", features = ["serde"] }
 mcts = { path = "../mcts" }
+lazy_static = "1.4.0"
+itertools = "0.10.5"
