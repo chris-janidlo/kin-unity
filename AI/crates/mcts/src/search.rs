@@ -104,16 +104,19 @@ where
         }
     }
 
-    fn tree_policy(&mut self, node_id: NodeId) -> NodeId {
-        let mut parent = node_id;
-        let mut leaf = self.expand(parent);
+    fn tree_policy(&mut self, mut node_id: NodeId) -> NodeId {
+        loop {
+            let state = &self.node(node_id).game_state;
+            if state.terminal_value(state.next_to_play()).is_some() {
+                return node_id;
+            }
 
-        while leaf.is_none() {
-            parent = self.best_child(parent, self.parameters.exploration_factor);
-            leaf = self.expand(parent);
+            if let Some(leaf) = self.expand(node_id) {
+                return leaf;
+            }
+
+            node_id = self.best_child(node_id, self.parameters.exploration_factor);
         }
-
-        leaf.unwrap()
     }
 
     fn expand(&mut self, node_id: NodeId) -> Option<NodeId> {
@@ -218,7 +221,11 @@ mod tests {
         }
 
         fn available_moves(&self) -> Self::MoveIterator {
-            vec![1, 3].into_iter()
+            if self.terminal_value(self.next_to_play()).is_some() {
+                vec![].into_iter()
+            } else {
+                vec![1, 3].into_iter()
+            }
         }
 
         fn next_to_play(&self) -> Self::Player {
@@ -261,7 +268,7 @@ mod tests {
         searcher: &mut Searcher<MockGameState>,
         parent: Option<NodeId>,
     ) -> (MockGameState, NodeId) {
-        let state: MockGameState = rand::random();
+        let state: MockGameState = rand::thread_rng().gen_range(0..10);
         let node_id = searcher.arena.new_node(MctsNode::empty_from_state(state));
 
         if let Some(parent_id) = parent {
@@ -275,7 +282,7 @@ mod tests {
         searcher: &mut Searcher<MockGameState>,
         parent: Option<NodeId>,
     ) -> (MockGameState, NodeId) {
-        let state: MockGameState = rand::random();
+        let state: MockGameState = rand::thread_rng().gen_range(0..10);
         let node_id = searcher.arena.new_node(MctsNode {
             game_state: state,
             score: rand::thread_rng().gen_range(-12.0..12.0),
@@ -501,6 +508,52 @@ mod tests {
 
         let mut ancestors = tree_policy_result.ancestors(&searcher.arena).skip(1);
         assert!(ancestors.next().is_some());
+    }
+
+    #[rstest]
+    fn tree_policy_stops_if_given_terminal_state(mut searcher: Searcher<MockGameState>) {
+        let mut data = MctsNode::empty_from_state(10);
+        data.unexpanded_moves = vec![0].into_iter();
+        let node = searcher.arena.new_node(data);
+
+        let leaf = searcher.tree_policy(node);
+
+        assert_eq!(node, leaf);
+
+        let mcts_node = searcher.node_mut(leaf);
+        assert_eq!(mcts_node.unexpanded_moves.next(), Some(0));
+        assert_eq!(mcts_node.unexpanded_moves.next(), None);
+    }
+
+    #[rstest]
+    fn tree_policy_stops_if_best_child_is_terminal_state(mut searcher: Searcher<MockGameState>) {
+        searcher.parameters.exploration_factor = 0.0;
+
+        let parent = random_node_with_mcts_data(&mut searcher, None);
+        consume_unexpanded_moves(&mut searcher, parent.1);
+
+        // "worst" by UCB1
+        let mut worst_state = MctsNode::empty_from_state(0);
+        worst_state.visits = 1;
+        let worst_node = searcher.arena.new_node(worst_state);
+        parent.1.append(worst_node, &mut searcher.arena);
+
+        let terminal_state = MctsNode {
+            game_state: 10,
+            unexpanded_moves: vec![0].into_iter(),
+            visits: 1,
+            score: 1.0,
+        };
+        let terminal_node = searcher.arena.new_node(terminal_state);
+        parent.1.append(terminal_node, &mut searcher.arena);
+
+        let leaf = searcher.tree_policy(parent.1);
+
+        assert_eq!(leaf, terminal_node);
+
+        let mcts_node = searcher.node_mut(leaf);
+        assert_eq!(mcts_node.unexpanded_moves.next(), Some(0));
+        assert_eq!(mcts_node.unexpanded_moves.next(), None);
     }
 
     #[rstest]
