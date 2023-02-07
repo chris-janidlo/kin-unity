@@ -36,7 +36,7 @@ pub(crate) use board;
 
 pub const BOARD_LENGTH: usize = 5;
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
 pub struct Board {
     pub positions: [[Option<Piece>; BOARD_LENGTH]; BOARD_LENGTH],
 }

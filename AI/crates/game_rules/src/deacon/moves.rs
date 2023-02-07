@@ -168,9 +168,6 @@ mod tests {
 
     use super::*;
 
-    // using compact syntax here because the test cases are very long, and I want to be
-    // able to fold them all with one click for code navigability
-    // see https://docs.rs/rstest/latest/rstest/attr.rstest.html#old-compact-syntax
     #[rstest(
         start_board, action, expected_result,
         case::basic_scientist_movement(
@@ -258,6 +255,7 @@ mod tests {
             ],
         ),
     )]
+
     fn test_apply_action(mut start_board: Board, action: Action, expected_result: Board) {
         apply_action(&mut start_board, &action);
         assert_eq!(start_board, expected_result);
@@ -382,142 +380,8 @@ mod tests {
         apply_move(&mut start_board, &move_);
         assert_eq!(start_board, expected_result);
     }
-
-    #[rstest(
-        state, expected_results,
-        case::single_scientist(
-            State {
-                to_play: Player::Blue,
-                board: board![
-                    [_, _, _, _, _];
-                    [_, _, _, _, _];
-                    [_, _, S, _, _];
-                    [_, _, _, _, _];
-                    [_, _, _, _, _];
-                ]
-            },
-            vec![
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 1),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 1),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 2),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 2),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 3),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(1, 3),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(2, 1),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(2, 1),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(2, 3),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(2, 3),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 1),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 1),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 2),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 2),
-                        transformation: Form::Priest
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 3),
-                        transformation: Form::Engineer
-                    }
-                ],
-                vec![
-                    Action {
-                        origin: coord_unwrapped(2, 2),
-                        destination: coord_unwrapped(3, 3),
-                        transformation: Form::Priest
-                    }
-                ],
-            ]
-        )
-    )]
-    fn test_move_iterator_generates_correct_moves(state: State, mut expected_results: Vec<Move>) {
-        let mut actual_results = MoveIterator::new(&state).collect_vec();
-
-        actual_results.sort_unstable();
-        expected_results.sort_unstable();
-
-        assert_eq!(actual_results, expected_results);
-    }
 }
+
+// split this into a separate file because the test cases are hundreds of lines long
+#[cfg(test)]
+mod move_iterator_tests;
