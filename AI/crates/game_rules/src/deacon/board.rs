@@ -38,9 +38,12 @@ pub(crate) use board;
 
 pub const BOARD_LENGTH: usize = 5;
 
+/// Note that (0, 0) is in the top left of the board, with increasing x coordinates
+/// going right and increasing y coordinates going down.
 #[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
 pub struct Board {
-    pub positions: [[Option<Piece>; BOARD_LENGTH]; BOARD_LENGTH],
+    /// Only public for the sake of the macro
+    pub(crate) positions: [[Option<Piece>; BOARD_LENGTH]; BOARD_LENGTH],
 }
 
 #[repr(u8)]
