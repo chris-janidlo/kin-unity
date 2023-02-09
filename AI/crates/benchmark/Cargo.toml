@@ -7,3 +7,4 @@ authors.workspace = true
 [dependencies]
 humantime = "2.1.0"
 mcts = { path = "../mcts" }
+game_rules = { path = "../game_rules" }
