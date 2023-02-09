@@ -40,7 +40,7 @@ pub const BOARD_LENGTH: usize = 5;
 
 /// Note that (0, 0) is in the top left of the board, with increasing x coordinates
 /// going right and increasing y coordinates going down.
-#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
+#[derive(PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
 pub struct Board {
     /// Only public for the sake of the macro
     pub(crate) positions: [[Option<Piece>; BOARD_LENGTH]; BOARD_LENGTH],
@@ -191,6 +191,41 @@ impl Mul<i8> for RelCoord {
             x: self.x * rhs,
             y: self.y * rhs,
         }
+    }
+}
+
+impl std::fmt::Debug for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let entries = self
+            .positions
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|p| {
+                        if let None = p {
+                            return '_';
+                        }
+                        let piece = p.as_ref().unwrap();
+
+                        let char = match piece.form {
+                            Form::Captain => 'c',
+                            Form::Engineer => 'e',
+                            Form::Pilot => 'i',
+                            Form::Priest => 'p',
+                            Form::Robot => 'r',
+                            Form::Scientist => 's',
+                        };
+
+                        match piece.owner {
+                            Player::Blue => char.to_uppercase().next().unwrap(),
+                            Player::Red => char.to_lowercase().next().unwrap(),
+                        }
+                    })
+                    .join(", ")
+            })
+            .collect_vec();
+
+        f.debug_list().entries(entries).finish()
     }
 }
 
