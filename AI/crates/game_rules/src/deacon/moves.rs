@@ -122,7 +122,7 @@ impl MoveIterator {
                                 }
                             }
 
-                            if targeted_piece.is_none() {
+                            if targeted_piece.is_some() {
                                 break 'range;
                             }
                         }
@@ -138,8 +138,8 @@ impl MoveIterator {
 
             // TODO: can we move this inward at all to save on iterations?
             for (move_, board) in possible_moves {
-                if move_.is_empty() {
-                    // skip first empty move
+                if move_.len() != piece_count {
+                    // skip partial moves that were unable to fully expand
                     continue;
                 }
 
