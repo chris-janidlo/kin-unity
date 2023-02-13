@@ -495,11 +495,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09a32eafa7772ab40a577d6710aa570d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grid: 2
-  gridRadius: 4.75
-  packingRadius: 0.5
+  gridConstant: 5.2
+  scale: 1
   gizmoRadius: 0.1
-  adjacencyLineMagnitude: 0.2
+  virtRealLerp: 1
+  adjacencyLineMagnitude: 0.1
   fccRotation: {x: 0, y: 0, z: 0}
   drawCubes: 1
   nodePrefab: {fileID: 0}
