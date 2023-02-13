@@ -1,32 +1,21 @@
 // spice - in a 3D hexagonal grid (face-centered cubic), pieces gain territory by moving
 // in the longest straight line available to them
 
+mod coord;
 mod direction;
 mod grid;
+mod moves;
+mod players;
 
-use glam::*;
 use mcts::GameState;
 
-use self::{direction::Direction, grid::Grid};
+use self::{grid::*, moves::*, players::*};
 
 #[derive(PartialEq)]
 pub struct SpiceState {
     grid: Grid,
     player: SpicePlayer,
 }
-
-pub struct SpiceMove {
-    source: IVec3,
-    direction: Direction,
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum SpicePlayer {
-    Red,
-    Blue,
-}
-
-pub struct SpiceMoveIterator {}
 
 impl GameState for SpiceState {
     type Move = SpiceMove;
@@ -50,23 +39,15 @@ impl GameState for SpiceState {
         self.player
     }
 
-    fn apply_move(&self, _move_: Self::Move) -> Self {
+    fn apply_move(&self, move_: Self::Move) -> Self {
         todo!()
     }
 
-    fn move_with_result(&self, _result: &Self) -> Self::Move {
+    fn move_with_result(&self, result: &Self) -> Self::Move {
         todo!()
     }
 
-    fn terminal_value(&self, _for_player: Self::Player) -> Option<f32> {
-        todo!()
-    }
-}
-
-impl Iterator for SpiceMoveIterator {
-    type Item = SpiceMove;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
         todo!()
     }
 }

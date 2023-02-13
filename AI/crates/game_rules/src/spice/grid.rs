@@ -1,22 +1,18 @@
-use std::ops::{Index, IndexMut};
+use ndarray::Array3;
 
-use glam::*;
-use ndarray::*;
+use super::{coord::*, direction::*, players::*};
 
-use super::{direction::Axis, SpicePlayer};
-
-pub const GRID_CONSTANT_F: f32 = std::f32::consts::TAU;
-pub const GRID_CONSTANT_I: i32 = 7; // GRID_CONSTANT_F.ceil(), hardcoded bc ceil() isn't const
+pub const GRID_CONSTANT_F: f32 = 5.2;
+pub const GRID_CONSTANT_I: i8 = 5; // GRID_CONSTANT_F.floor(), hardcoded bc floor() isn't const
 
 #[derive(PartialEq, Clone)]
 pub struct Grid {
-    // see dynalist for notes on how to make this more space-efficient
-    values: Array3<GridSpace>,
+    // spaces are indexed by VirtD3s, offset by a constant factor
+    packed_spaces: Array3<Option<GridSpace>>,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum GridSpace {
-    Illegal,
     Empty,
     Blocked,
     Line(SpicePlayer, Axis),
@@ -26,35 +22,22 @@ pub enum GridSpace {
     },
 }
 
-fn to_nd(vec: IVec3) -> [usize; 3] {
-    let x = (vec.x + GRID_CONSTANT_I) as usize;
-    let y = (vec.y + GRID_CONSTANT_I) as usize;
-    let z = (vec.z + GRID_CONSTANT_I) as usize;
-
-    [x, y, z]
-}
-
 impl Default for Grid {
     fn default() -> Self {
-        let grid_width = Self::axis_length() as usize;
+        let grid_width = Self::axis_length();
 
         let mut result = Self {
-            values: Array3::from_elem((grid_width, grid_width, grid_width), GridSpace::Illegal),
+            packed_spaces: Array3::from_elem((grid_width, grid_width, grid_width), None),
         };
 
         for i in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
             for j in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
                 for k in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
-                    if (i + j + k) % 2 != 0 {
-                        continue;
-                    }
+                    let virt = virt_d3(i, j, k);
 
-                    let vec: Vec3 = vec3(i as f32, j as f32, k as f32);
-                    if vec.length_squared() >= GRID_CONSTANT_F * GRID_CONSTANT_F {
-                        continue;
+                    if Self::in_sphere(virt) {
+                        result.packed_spaces[Self::indexify(virt)] = Some(GridSpace::Empty);
                     }
-
-                    result[vec.as_ivec3()] = GridSpace::Empty;
                 }
             }
         }
@@ -63,42 +46,90 @@ impl Default for Grid {
     }
 }
 
-impl Index<IVec3> for Grid {
-    type Output = GridSpace;
-
-    fn index(&self, idx: IVec3) -> &Self::Output {
-        &self.values[to_nd(idx)]
-    }
-}
-
-impl IndexMut<IVec3> for Grid {
-    fn index_mut(&mut self, idx: IVec3) -> &mut Self::Output {
-        &mut self.values[to_nd(idx)]
-    }
-}
-
 impl Grid {
-    pub fn get(&self, idx: IVec3) -> Option<GridSpace> {
-        self.values.get(to_nd(idx)).copied()
+    /// Attempt to retrieve a space in the grid, using a [Real] coordinate.
+    pub fn get_rc(&self, index: Real) -> &Option<GridSpace> {
+        match index.try_into() {
+            Ok(v) => self.get_vc(v),
+            Err(_) => &None,
+        }
     }
 
-    pub fn get_legal(&self, idx: IVec3) -> Option<GridSpace> {
-        self.get(idx).and_then(|s| match s {
-            GridSpace::Illegal => None,
-            _ => Some(s),
-        })
+    /// Attempt to retrieve a space in the grid, using a [VirtD3] coordinate.
+    pub fn get_vc(&self, index: VirtD3) -> &Option<GridSpace> {
+        match self.packed_spaces.get(Self::indexify(index)) {
+            Some(s) => s,
+            None => &None,
+        }
     }
 
-    pub fn axis_length() -> i32 {
-        // `+ 1` to include 0
-        GRID_CONSTANT_I * 2 + 1
+    /// Attempt to set a space in the grid, using a [Real] coordinate.
+    pub fn set_rc(&mut self, index: Real, value: GridSpace) -> Result<(), String> {
+        let virt: Result<VirtD3, _> = index.try_into();
+
+        match virt {
+            Err(e) => Err(format!("{index:?} cannot be converted to virt ({e:?})")),
+            Ok(v) => self
+                .set_vc(v, value)
+                .map_err(|e| format!("unable to set {index}: {e}")),
+        }
     }
 
-    pub fn slice_mut(
-        &mut self,
-        info: impl SliceArg<Ix3, OutDim = Dim<[usize; 3]>>,
-    ) -> ArrayViewMut3<GridSpace> {
-        self.values.slice_mut(info)
+    /// Attempt to set a space in the grid, using a [VirtD3] coordinate.
+    pub fn set_vc(&mut self, index: VirtD3, value: GridSpace) -> Result<(), String> {
+        if !Self::in_sphere(index) {
+            return Err(format!("{index:?} is out of sphere bounds"));
+        }
+
+        let idx = Self::indexify(index);
+
+        if idx.iter().any(|c| *c > Self::axis_length()) {
+            return Err(format!("{idx:?} is out of array bounds"));
+        }
+
+        self.packed_spaces[idx] = Some(value);
+
+        Ok(())
+    }
+
+    /// Set a space in the grid, using a [Real] coordinate.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the coordinate isn't in D3, or is out of the bounds of the array.
+    pub fn set_rc_unchecked(&mut self, index: Real, value: GridSpace) {
+        self.set_vc_unchecked(index.try_into().unwrap(), value);
+    }
+
+    /// Set a space in the grid, using a [VirtD3] coordinate.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the coordinate is out of the bounds of the array.
+    pub fn set_vc_unchecked(&mut self, index: VirtD3, value: GridSpace) {
+        self.packed_spaces[Self::indexify(index)] = Some(value);
+    }
+
+    #[inline]
+    fn axis_length() -> usize {
+        // each axis is two spans of GRID_CONSTANT_I length, plus 1 space for the origin
+        (GRID_CONSTANT_I * 2 + 1) as usize
+    }
+
+    #[inline]
+    fn indexify(virt: VirtD3) -> [usize; 3] {
+        let VirtD3 { i, j, k } = virt;
+
+        [
+            (i + GRID_CONSTANT_I) as usize,
+            (j + GRID_CONSTANT_I) as usize,
+            (k + GRID_CONSTANT_I) as usize,
+        ]
+    }
+
+    #[inline]
+    fn in_sphere(virt: VirtD3) -> bool {
+        virt.length_squared() < GRID_CONSTANT_F * GRID_CONSTANT_F
     }
 }
 
@@ -122,60 +153,118 @@ mod tests {
     }
 
     #[rstest]
-    fn default_has_correct_shape(empty_grid: Grid) {
-        let mut axis_lengths = empty_grid.values.axes().map(|a| a.len as i32);
+    fn index_spotcheck(empty_grid: Grid) {
+        // set offset to the largest possible integer such that a basis Z^3 vector
+        // multiplied by offset is both 1) in the FCC lattice and 2) within a radius of
+        // GRID_CONSTANT
+        let mut offset = GRID_CONSTANT_F.floor() as i16;
+        if offset % 2 != 0 {
+            // ensure offset is even, to satisfy FCC constraint
+            // and round down, to satisfy radius constraint
+            offset -= 1;
+        }
 
-        assert_eq!(axis_lengths.next(), Some(Grid::axis_length()));
-        assert_eq!(axis_lengths.next(), Some(Grid::axis_length()));
-        assert_eq!(axis_lengths.next(), Some(Grid::axis_length()));
-        assert_eq!(axis_lengths.next(), None);
-    }
+        let indices = [
+            real(0, 0, 0),
+            real(offset, 0, 0),
+            real(-offset, 0, 0),
+            real(0, offset, 0),
+            real(0, -offset, 0),
+            real(0, 0, offset),
+            real(0, 0, -offset),
+        ];
 
-    #[rstest]
-    fn index_offsets_correctly(empty_grid: Grid) {
-        // the ndarray that Grid uses starts at (0, 0, 0), while we want a public API
-        // that starts at (GRID_CONSTANT_I...)
-        let offset = Grid::axis_length() / 2;
-
-        let idx_btm = IVec3::splat(-offset);
-        let idx_mid = IVec3::ZERO;
-        let idx_top = IVec3::splat(offset);
-
-        let bottom_checked = empty_grid.get(idx_btm);
-        let middle_checked = empty_grid.get(idx_mid);
-        let top_checked = empty_grid.get(idx_top);
-
-        assert_ne!(bottom_checked, None, "grid has no value at {idx_btm}");
-        assert_ne!(middle_checked, None, "grid has no value at {idx_mid}");
-        assert_ne!(top_checked, None, "grid has no value at {idx_top}");
-
-        let bottom_unchecked = empty_grid[idx_btm];
-        let middle_unchecked = empty_grid[idx_mid];
-        let top_unchecked = empty_grid[idx_top];
-
-        assert_eq!(bottom_unchecked, bottom_checked.unwrap());
-        assert_eq!(middle_unchecked, middle_checked.unwrap());
-        assert_eq!(top_unchecked, top_checked.unwrap());
+        for index in indices {
+            let space = empty_grid.get_rc(index);
+            assert_ne!(space, &None, "{index} should be a valid space");
+        }
     }
 
     #[rstest]
     fn default_generates_correct_grid(empty_grid: Grid) {
-        for i in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
-            for j in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
-                for k in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
-                    let v = ivec3(i, j, k);
+        for x in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+            for y in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+                for z in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+                    let c = real(x.into(), y.into(), z.into());
+                    let s = empty_grid.get_rc(c);
 
-                    if let GridSpace::Illegal = empty_grid[v] {
-                        let out_of_bounds = v.as_vec3().length() >= GRID_CONSTANT_F;
-                        let not_in_lattice = (i + j + k) % 2 != 0;
-
-                        assert!(
-                            out_of_bounds || not_in_lattice,
-                            "out of bounds: {out_of_bounds}, not in lattice: {not_in_lattice}"
-                        );
+                    match VirtD3::try_from(c) {
+                        Ok(v) => match s {
+                            Some(_) => assert!(
+                                v.length() < GRID_CONSTANT_F,
+                                "valid spaces must be inside the sphere"
+                            ),
+                            None => assert!(
+                                v.length() >= GRID_CONSTANT_F,
+                                "invalid spaces that are in the lattice must be outside the sphere"
+                            ),
+                        },
+                        Err(_) => assert!(
+                            s.is_none(),
+                            "spaces not in the lattice cannot be in the grid"
+                        ),
                     }
                 }
             }
         }
+    }
+
+    #[rstest]
+    #[case(real(0, 0, 0), true)]
+    #[case(real(1, 0, 1), true)]
+    #[case(real(1, -2, 1), true)]
+    #[case(real(0, 0, 4), true)]
+    #[case(real(0, 1, 0), false)]
+    #[case(real(4, 4, -4), false)]
+    #[case(real(i8::MIN.into(), i8::MIN.into(), i8::MIN.into()), false)]
+    #[case(real(i16::MIN, i16::MIN, i16::MIN), false)]
+    fn spotcheck_set_rc(mut empty_grid: Grid, #[case] coord: Real, #[case] ok: bool) {
+        assert_eq!(empty_grid.set_rc(coord, GridSpace::Empty).is_ok(), ok);
+    }
+
+    #[rstest]
+    #[case(virt_d3(0, 0, 0), true)]
+    #[case(virt_d3(1, 2, 3), true)]
+    #[case(virt_d3(1, 1, 1), true)]
+    #[case(virt_d3(-1, -2, -3), true)]
+    #[case(virt_d3(-1, -1, -1), true)]
+    #[case(virt_d3(6, 5, 5), false)]
+    #[case(virt_d3(i8::MAX, i8::MAX, i8::MAX), false)]
+    #[case(virt_d3(i8::MIN, i8::MIN, i8::MIN), false)]
+    fn spotcheck_set_vc(mut empty_grid: Grid, #[case] coord: VirtD3, #[case] ok: bool) {
+        assert_eq!(empty_grid.set_vc(coord, GridSpace::Empty).is_ok(), ok);
+    }
+
+    #[rstest]
+    #[case(real(0, 0, 0))]
+    #[case(real(1, 0, 1))]
+    #[case(real(1, -2, 1))]
+    #[case(real(0, 0, 4))]
+    #[should_panic]
+    #[case(real(0, 1, 0))]
+    #[should_panic]
+    #[case(real(4, 4, -4))]
+    #[should_panic]
+    #[case(real(i8::MIN.into(), i8::MIN.into(), i8::MIN.into()))]
+    #[should_panic]
+    #[case(real(i16::MIN, i16::MIN, i16::MIN))]
+    fn spotcheck_set_rc_unchecked(mut empty_grid: Grid, #[case] coord: Real) {
+        empty_grid.set_rc_unchecked(coord, GridSpace::Empty);
+    }
+
+    #[rstest]
+    #[case(virt_d3(0, 0, 0))]
+    #[case(virt_d3(1, 2, 3))]
+    #[case(virt_d3(1, 1, 1))]
+    #[case(virt_d3(-1, -2, -3))]
+    #[case(virt_d3(-1, -1, -1))]
+    #[should_panic]
+    #[case(virt_d3(6, 5, 5))]
+    #[should_panic]
+    #[case(virt_d3(i8::MAX, i8::MAX, i8::MAX))]
+    #[should_panic]
+    #[case(virt_d3(i8::MIN, i8::MIN, i8::MIN))]
+    fn spotcheck_set_vc_unchecked(mut empty_grid: Grid, #[case] coord: VirtD3) {
+        empty_grid.set_vc_unchecked(coord, GridSpace::Empty);
     }
 }
