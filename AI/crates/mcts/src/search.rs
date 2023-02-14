@@ -312,6 +312,8 @@ mod tests {
 
     #[rstest]
     fn starting_tree_finds_old_tree_and_detaches(mut searcher: Searcher<MockGameState>) {
+        // FIXME: have seen this test fail once, don't know what caused it. probably
+        // worth looking into property testing to find the failure state
         let node_1 = random_node(&mut searcher, None);
         let node_1_1 = random_node(&mut searcher, Some(node_1.1));
         let node_1_1_1 = random_node(&mut searcher, Some(node_1_1.1));
