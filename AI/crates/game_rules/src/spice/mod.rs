@@ -15,6 +15,7 @@ use self::{grid::*, moves::*, players::*};
 pub struct SpiceState {
     grid: Grid,
     player: SpicePlayer,
+    moves: Vec<SpiceMove>,
 }
 
 impl GameState for SpiceState {
@@ -22,17 +23,22 @@ impl GameState for SpiceState {
 
     type Player = SpicePlayer;
 
-    type MoveIterator = SpiceMoveIterator;
+    type MoveIterator = std::vec::IntoIter<SpiceMove>;
 
     fn initial_state() -> Self {
+        let grid = Default::default();
+        let player = SpicePlayer::Blue;
+        let moves = generate_moves(&grid, player);
+
         Self {
-            grid: Default::default(),
-            player: SpicePlayer::Blue,
+            grid,
+            player,
+            moves,
         }
     }
 
     fn available_moves(&self) -> Self::MoveIterator {
-        SpiceMoveIterator::new(self)
+        self.moves.clone().into_iter()
     }
 
     fn next_to_play(&self) -> Self::Player {
@@ -48,6 +54,10 @@ impl GameState for SpiceState {
     }
 
     fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
-        todo!()
+        match self.moves.len() {
+            0 if for_player == self.player => Some(-1.0),
+            0 if for_player != self.player => Some(1.0),
+            _ => None,
+        }
     }
 }
