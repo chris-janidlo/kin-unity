@@ -1,53 +1,32 @@
 use mcts::GameState;
 
-use super::{coord::*, direction::*, grid::*, SpiceState};
+use super::{coord::*, direction::*, grid::*, players::*, SpiceState};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SpiceMove {
     source: VirtD3,
     direction: Direction,
 }
 
-pub struct SpiceMoveIterator {
-    moves: Vec<SpiceMove>,
-}
+pub fn generate_moves(grid: &Grid, player: SpicePlayer) -> Vec<SpiceMove> {
+    let owned_endpoint_coords = grid.enumerate_vc().filter_map(|(c, s)| match s {
+        GridSpace::Endpoint { owner, .. } if *owner == player => Some(c),
+        _ => None,
+    });
 
-impl SpiceMoveIterator {
-    pub fn new(state: &SpiceState) -> Self {
-        // TODO: can we do the move generation lazily? the type of `moves` without the
-        // collect is a mess of i: dilosures, which seems hard to unravel (to see for
-        // yourself, remove the .collect() call on the moves iter and run cargo check),
-        // not to mention the lifetime on the state's grid we'd have to somehow track
-
-        let owned_endpoint_coords = state.grid.enumerate_vc().filter_map(|(c, s)| match s {
-            GridSpace::Endpoint { owner, .. } if *owner == state.next_to_play() => Some(c),
-            _ => None,
-        });
-
-        let moves = owned_endpoint_coords
-            .flat_map(|c| {
-                Direction::ALL.iter().filter_map(move |&d| {
-                    state.grid.get_vc(c + d).as_ref().and_then(|s| match s {
-                        GridSpace::Empty => Some(SpiceMove {
-                            source: c,
-                            direction: d,
-                        }),
-                        _ => None,
-                    })
+    owned_endpoint_coords
+        .flat_map(|c| {
+            Direction::ALL.iter().filter_map(move |&d| {
+                grid.get_vc(c + d).as_ref().and_then(|s| match s {
+                    GridSpace::Empty => Some(SpiceMove {
+                        source: c,
+                        direction: d,
+                    }),
+                    _ => None,
                 })
             })
-            .collect();
-
-        Self { moves }
-    }
-}
-
-impl Iterator for SpiceMoveIterator {
-    type Item = SpiceMove;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.moves.pop()
-    }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -261,12 +240,7 @@ mod tests {
             empty_grid.set_vc_unchecked(index, value);
         }
 
-        let state = SpiceState {
-            grid: empty_grid,
-            player,
-        };
-
-        let mut actual_moves: Vec<SpiceMove> = SpiceMoveIterator::new(&state).collect();
+        let mut actual_moves = generate_moves(&empty_grid, player);
 
         sort_move_list(&mut actual_moves);
         sort_move_list(&mut expected_moves);
