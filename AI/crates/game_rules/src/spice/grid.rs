@@ -47,6 +47,12 @@ impl Default for Grid {
 }
 
 impl Grid {
+    pub fn enumerate_vc(&self) -> impl Iterator<Item = (VirtD3, &GridSpace)> {
+        self.packed_spaces
+            .indexed_iter()
+            .filter_map(|(c, s)| s.as_ref().map(|space| (Self::unindexify(c), space)))
+    }
+
     /// Attempt to retrieve a space in the grid, using a [Real] coordinate.
     pub fn get_rc(&self, index: Real) -> &Option<GridSpace> {
         match index.try_into() {
@@ -83,7 +89,8 @@ impl Grid {
 
         let idx = Self::indexify(index);
 
-        if idx.iter().any(|c| *c > Self::axis_length()) {
+        let (i, j, k) = idx;
+        if i > Self::axis_length() || j > Self::axis_length() || k > Self::axis_length() {
             return Err(format!("{idx:?} is out of array bounds"));
         }
 
@@ -117,14 +124,25 @@ impl Grid {
     }
 
     #[inline]
-    fn indexify(virt: VirtD3) -> [usize; 3] {
+    fn indexify(virt: VirtD3) -> (usize, usize, usize) {
         let VirtD3 { i, j, k } = virt;
 
-        [
+        (
             (i + GRID_CONSTANT_I) as usize,
             (j + GRID_CONSTANT_I) as usize,
             (k + GRID_CONSTANT_I) as usize,
-        ]
+        )
+    }
+
+    #[inline]
+    fn unindexify(idx: (usize, usize, usize)) -> VirtD3 {
+        let (t, u, v) = idx;
+
+        virt_d3(
+            t as i8 - GRID_CONSTANT_I,
+            u as i8 - GRID_CONSTANT_I,
+            v as i8 - GRID_CONSTANT_I,
+        )
     }
 
     #[inline]
@@ -137,6 +155,8 @@ impl Grid {
 mod tests {
     use std::time::Duration;
 
+    use pretty_assertions::assert_eq;
+    use rand::prelude::*;
     use rstest::*;
 
     use super::*;
@@ -266,5 +286,51 @@ mod tests {
     #[case(virt_d3(i8::MIN, i8::MIN, i8::MIN))]
     fn spotcheck_set_vc_unchecked(mut empty_grid: Grid, #[case] coord: VirtD3) {
         empty_grid.set_vc_unchecked(coord, GridSpace::Empty);
+    }
+
+    #[rstest]
+    fn enumerate_vc_doesnt_panic(empty_grid: Grid) {
+        for e in empty_grid.enumerate_vc() {
+            println!("{e:?}");
+        }
+    }
+
+    #[rstest]
+    fn enumerate_vc_visits_whole_grid(empty_grid: Grid) {
+        let mut expected_path: Vec<VirtD3> = Default::default();
+        for i in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+            for j in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+                for k in -GRID_CONSTANT_I..=GRID_CONSTANT_I {
+                    let c = virt_d3(i, j, k);
+                    if c.length() < GRID_CONSTANT_F {
+                        expected_path.push(c);
+                    }
+                }
+            }
+        }
+        expected_path.sort_unstable_by_key(|c| (c.i, c.j, c.k));
+
+        let mut actual_path: Vec<VirtD3> = empty_grid.enumerate_vc().map(|(c, _)| c).collect();
+        actual_path.sort_unstable_by_key(|c| (c.i, c.j, c.k));
+
+        assert_eq!(actual_path, expected_path);
+    }
+
+    #[rstest]
+    fn indexify_unindexify_equivalence() {
+        for _ in 0..100 {
+            let virt = virt_d3(
+                thread_rng().gen_range(i8::MIN..=i8::MAX - GRID_CONSTANT_I),
+                thread_rng().gen_range(i8::MIN..=i8::MAX - GRID_CONSTANT_I),
+                thread_rng().gen_range(i8::MIN..=i8::MAX - GRID_CONSTANT_I),
+            );
+            let index = Grid::indexify(virt);
+            let unindex = Grid::unindexify(index);
+
+            assert_eq!(
+                virt, unindex,
+                "{index:?} was improperly generated or converted"
+            );
+        }
     }
 }
