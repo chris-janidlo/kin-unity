@@ -29,6 +29,21 @@ pub enum Axis {
 }
 
 impl Direction {
+    pub const ALL: [Direction; 12] = [
+        Direction::NorthEast,
+        Direction::NorthWest,
+        Direction::SouthEast,
+        Direction::SouthWest,
+        Direction::UpNorth,
+        Direction::UpSouth,
+        Direction::UpEast,
+        Direction::UpWest,
+        Direction::DownNorth,
+        Direction::DownSouth,
+        Direction::DownEast,
+        Direction::DownWest,
+    ];
+
     pub fn axis(self) -> Axis {
         match self {
             Direction::NorthWest | Direction::SouthEast => Axis::NwSe,
@@ -190,24 +205,6 @@ mod tests {
     use super::*;
 
     #[fixture]
-    fn all_directions() -> [Direction; 12] {
-        [
-            Direction::NorthEast,
-            Direction::NorthWest,
-            Direction::SouthEast,
-            Direction::SouthWest,
-            Direction::UpNorth,
-            Direction::UpSouth,
-            Direction::UpEast,
-            Direction::UpWest,
-            Direction::DownNorth,
-            Direction::DownSouth,
-            Direction::DownEast,
-            Direction::DownWest,
-        ]
-    }
-
-    #[fixture]
     fn all_axes() -> [Axis; 6] {
         [
             Axis::NeSw,
@@ -220,15 +217,15 @@ mod tests {
     }
 
     #[rstest]
-    fn direction_double_neg_is_noop(all_directions: [Direction; 12]) {
-        for dir in all_directions {
+    fn direction_double_neg_is_noop() {
+        for dir in Direction::ALL {
             assert_eq!(dir, -(-dir));
         }
     }
 
     #[rstest]
-    fn direction_minus_self_is_zero(all_directions: [Direction; 12]) {
-        for dir in all_directions {
+    fn direction_minus_self_is_zero() {
+        for dir in Direction::ALL {
             let r: Real = dir.into();
             let v: VirtD3 = dir.into();
 
@@ -238,8 +235,8 @@ mod tests {
     }
 
     #[rstest]
-    fn real_virt_conversions_are_equivalent(all_directions: [Direction; 12]) {
-        for dir in all_directions {
+    fn real_virt_conversions_are_equivalent() {
+        for dir in Direction::ALL {
             let real: Real = dir.into();
             let virt: VirtD3 = dir.into();
 

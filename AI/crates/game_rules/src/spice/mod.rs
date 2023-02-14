@@ -32,7 +32,7 @@ impl GameState for SpiceState {
     }
 
     fn available_moves(&self) -> Self::MoveIterator {
-        todo!()
+        SpiceMoveIterator::new(self)
     }
 
     fn next_to_play(&self) -> Self::Player {
