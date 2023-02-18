@@ -17,7 +17,7 @@ pub fn generate_moves(grid: &Grid, player: SpicePlayer) -> Vec<SpiceMove> {
     owned_endpoint_coords
         .flat_map(|c| {
             Direction::ALL.iter().filter_map(move |&d| {
-                grid.get_vc(c + d).as_ref().and_then(|s| match s {
+                grid.get_vc(c + d).and_then(|s| match s {
                     GridSpace::Empty => Some(SpiceMove {
                         source: c,
                         direction: d,

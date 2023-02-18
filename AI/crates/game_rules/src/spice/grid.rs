@@ -54,19 +54,17 @@ impl Grid {
     }
 
     /// Attempt to retrieve a space in the grid, using a [Real] coordinate.
-    pub fn get_rc(&self, index: Real) -> &Option<GridSpace> {
+    pub fn get_rc(&self, index: Real) -> Option<&GridSpace> {
         match index.try_into() {
             Ok(v) => self.get_vc(v),
-            Err(_) => &None,
+            Err(_) => None,
         }
     }
 
     /// Attempt to retrieve a space in the grid, using a [VirtD3] coordinate.
-    pub fn get_vc(&self, index: VirtD3) -> &Option<GridSpace> {
-        match self.packed_spaces.get(Self::indexify(index)) {
-            Some(s) => s,
-            None => &None,
-        }
+    pub fn get_vc(&self, index: VirtD3) -> Option<&GridSpace> {
+        let idx = Self::indexify(index);
+        self.packed_spaces.get(idx).and_then(|s| s.as_ref())
     }
 
     /// Attempt to set a space in the grid, using a [Real] coordinate.
@@ -196,7 +194,7 @@ mod tests {
 
         for index in indices {
             let space = empty_grid.get_rc(index);
-            assert_ne!(space, &None, "{index} should be a valid space");
+            assert_ne!(space, None, "{index} should be a valid space");
         }
     }
 
