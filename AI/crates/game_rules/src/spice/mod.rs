@@ -63,7 +63,21 @@ impl GameState for SpiceState {
     }
 
     fn apply_move(&self, move_: Self::Move) -> Self {
-        todo!()
+        let mut grid = self.grid.clone();
+        apply_move(&mut grid, move_, self.next_to_play());
+
+        let player = match self.player {
+            SpicePlayer::Red => SpicePlayer::Blue,
+            SpicePlayer::Blue => SpicePlayer::Red,
+        };
+
+        let moves = generate_moves(&grid, player);
+
+        Self {
+            grid,
+            player,
+            moves,
+        }
     }
 
     fn move_with_result(&self, result: &Self) -> Self::Move {

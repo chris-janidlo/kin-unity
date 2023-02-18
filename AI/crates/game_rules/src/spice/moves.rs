@@ -29,6 +29,112 @@ pub fn generate_moves(grid: &Grid, player: SpicePlayer) -> Vec<SpiceMove> {
         .collect()
 }
 
+pub fn apply_move(grid: &mut Grid, move_: SpiceMove, player: SpicePlayer) {
+    // TODO: use anyhow instead of immediately panicking?
+
+    // this function (and the tree of subroutines it invokes) could probably be done with
+    // some kind of slice over the contents of grid, but I was running into issues with
+    // lifetimes when implementing a method in Grid for it. unsure if that would be more
+    // performant, but this is probably fine as is
+
+    update_start_endpoint(grid, move_.source);
+
+    let axis = move_.direction.axis();
+    let mut ray_coord = move_.source + move_.direction;
+    while let Some(space) = grid.get_vc(ray_coord) {
+        match space {
+            GridSpace::Empty => {
+                set_line_segment(grid, ray_coord, axis, false);
+            }
+
+            GridSpace::LineSegment { axis: ax, hardened } => {
+                if *hardened {
+                    break;
+                }
+
+                let (dir1, dir2) = ax.directions();
+
+                cut_line_in_direction(grid, ray_coord + dir1, dir1);
+                cut_line_in_direction(grid, ray_coord + dir2, dir2);
+
+                set_line_segment(grid, ray_coord, axis, true);
+            }
+
+            GridSpace::Blocked | GridSpace::Endpoint { .. } => break,
+        }
+
+        ray_coord += move_.direction;
+    }
+
+    let end_coord = ray_coord - move_.direction;
+    create_end_endpoint(grid, end_coord, player);
+}
+
+fn update_start_endpoint(grid: &mut Grid, coord: VirtD3) {
+    let mut gs = grid
+        .get_mut_vc(coord)
+        .expect("apply_move source should be a valid grid point");
+
+    if let GridSpace::Endpoint {
+        connected_lines, ..
+    } = gs
+    {
+        *connected_lines += 1;
+    } else {
+        panic!("can only apply_move if source is an endpoint");
+    }
+}
+
+fn create_end_endpoint(grid: &mut Grid, coord: VirtD3, player: SpicePlayer) {
+    let endpoint = GridSpace::Endpoint {
+        owner: player,
+        connected_lines: 1,
+    };
+
+    grid.set_vc(coord, endpoint)
+        .expect("should be able to set the end endpoint");
+}
+
+fn set_line_segment(grid: &mut Grid, coord: VirtD3, axis: Axis, hardened: bool) {
+    grid.set_vc(coord, GridSpace::LineSegment { axis, hardened })
+        .expect("should be able to set a line segment");
+}
+
+fn cut_line_in_direction(grid: &mut Grid, start_coord: VirtD3, dir: Direction) {
+    let mut coord = start_coord;
+    while let Some(space) = grid.get_vc(coord) {
+        match space {
+            GridSpace::LineSegment { .. } => {
+                grid.set_vc(coord, GridSpace::Empty)
+                    .expect("should be able to delete a line segment");
+            }
+
+            GridSpace::Endpoint {
+                owner,
+                connected_lines,
+            } => {
+                let new_space = if *connected_lines == 1 {
+                    GridSpace::Blocked
+                } else {
+                    GridSpace::Endpoint {
+                        owner: *owner,
+                        connected_lines: connected_lines - 1,
+                    }
+                };
+
+                grid.set_vc(coord, new_space)
+                    .expect("should be able to update an endpoint after clearing a line");
+
+                break;
+            }
+
+            _ => panic!("should only see lines or endpoints when clearing a line"),
+        }
+
+        coord += dir;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
@@ -216,9 +322,9 @@ mod tests {
             (virt_d3(0, 0, 0), GridSpace::Endpoint { owner: SpicePlayer::Red, connected_lines: 0 }),
             (virt_d3(1, 0, -1), GridSpace::Blocked),
             (virt_d3(0, -1, 1), GridSpace::Blocked),
-            (virt_d3(-1, 0, 0), GridSpace::Line(SpicePlayer::Red, Axis::UnDs)),
+            (virt_d3(-1, 0, 0), GridSpace::LineSegment { axis: Axis::UnDs, hardened: false }),
             (virt_d3(-1, 0, 1), GridSpace::Blocked),
-            (virt_d3(0, -1, 0), GridSpace::Line(SpicePlayer::Blue, Axis::NwSe)),
+            (virt_d3(0, -1, 0), GridSpace::LineSegment { axis: Axis::NwSe, hardened: true }),
         ],
         vec![
             smove(virt_d3(0, 0, 0), Direction::NorthEast),
@@ -247,4 +353,6 @@ mod tests {
 
         assert_eq!(actual_moves, expected_moves);
     }
+
+    // TODO: test apply_move and associated subroutines
 }
