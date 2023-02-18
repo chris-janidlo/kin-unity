@@ -9,7 +9,7 @@ mod players;
 
 use mcts::GameState;
 
-use self::{grid::*, moves::*, players::*};
+use self::{coord::*, grid::*, moves::*, players::*};
 
 #[derive(PartialEq)]
 pub struct SpiceState {
@@ -26,7 +26,24 @@ impl GameState for SpiceState {
     type MoveIterator = std::vec::IntoIter<SpiceMove>;
 
     fn initial_state() -> Self {
-        let grid = Default::default();
+        let mut grid: Grid = Default::default();
+
+        grid.set_vc(
+            virt_d3(3, 3, 3),
+            GridSpace::Endpoint {
+                owner: SpicePlayer::Blue,
+                connected_lines: 0,
+            },
+        );
+
+        grid.set_vc(
+            virt_d3(-3, -3, -3),
+            GridSpace::Endpoint {
+                owner: SpicePlayer::Red,
+                connected_lines: 0,
+            },
+        );
+
         let player = SpicePlayer::Blue;
         let moves = generate_moves(&grid, player);
 
