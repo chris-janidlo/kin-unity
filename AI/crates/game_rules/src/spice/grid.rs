@@ -5,7 +5,7 @@ use super::{coord::*, direction::*, players::*};
 pub const GRID_CONSTANT_F: f32 = 5.2;
 pub const GRID_CONSTANT_I: i8 = 5; // GRID_CONSTANT_F.floor(), hardcoded bc floor() isn't const
 
-#[derive(PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Grid {
     // spaces are indexed by VirtD3s, offset by a constant factor
     packed_spaces: Array3<Option<GridSpace>>,

@@ -4,8 +4,8 @@ use super::{coord::*, direction::*, grid::*, players::*, SpiceState};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SpiceMove {
-    source: VirtD3,
-    direction: Direction,
+    pub(crate) source: VirtD3,
+    pub(crate) direction: Direction,
 }
 
 pub fn generate_moves(grid: &Grid, player: SpicePlayer) -> Vec<SpiceMove> {
