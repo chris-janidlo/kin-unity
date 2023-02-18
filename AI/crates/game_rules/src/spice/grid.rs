@@ -15,7 +15,10 @@ pub struct Grid {
 pub enum GridSpace {
     Empty,
     Blocked,
-    Line(SpicePlayer, Axis),
+    LineSegment {
+        axis: Axis,
+        hardened: bool,
+    },
     Endpoint {
         owner: SpicePlayer,
         connected_lines: u8,
@@ -65,6 +68,11 @@ impl Grid {
     pub fn get_vc(&self, index: VirtD3) -> Option<&GridSpace> {
         let idx = Self::indexify(index);
         self.packed_spaces.get(idx).and_then(|s| s.as_ref())
+    }
+
+    pub fn get_mut_vc(&mut self, index: VirtD3) -> Option<&mut GridSpace> {
+        let idx = Self::indexify(index);
+        self.packed_spaces.get_mut(idx).and_then(|s| s.as_mut())
     }
 
     /// Attempt to set a space in the grid, using a [Real] coordinate.
