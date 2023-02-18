@@ -9,9 +9,9 @@ mod players;
 
 use mcts::GameState;
 
-use self::{coord::*, grid::*, moves::*, players::*};
+use self::{coord::*, direction::*, grid::*, moves::*, players::*};
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct SpiceState {
     grid: Grid,
     player: SpicePlayer,
@@ -81,7 +81,14 @@ impl GameState for SpiceState {
     }
 
     fn move_with_result(&self, result: &Self) -> Self::Move {
-        todo!()
+        // TODO: this is a dummy implementation
+
+        println!("{result:?}");
+
+        SpiceMove {
+            source: virt_d3(0, 0, 0),
+            direction: Direction::DownEast,
+        }
     }
 
     fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
