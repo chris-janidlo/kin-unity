@@ -99,3 +99,21 @@ impl GameState for SpiceState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use mcts::*;
+    use rstest::*;
+
+    use super::*;
+
+    #[rstest]
+    fn search_runs_without_panic() {
+        let mut searcher = Searcher::new(SearchParameters {
+            exploration_factor: std::f32::consts::FRAC_1_SQRT_2,
+            search_iterations: 10,
+        });
+
+        searcher.search(SpiceState::initial_state());
+    }
+}
