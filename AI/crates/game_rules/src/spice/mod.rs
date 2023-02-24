@@ -16,6 +16,7 @@ pub struct SpiceState {
     grid: Grid,
     player: SpicePlayer,
     moves: Vec<SpiceMove>,
+    move_cache: MoveCache,
 }
 
 impl GameState for SpiceState {
@@ -26,31 +27,45 @@ impl GameState for SpiceState {
     type MoveIterator = std::vec::IntoIter<SpiceMove>;
 
     fn initial_state() -> Self {
-        let mut grid: Grid = Default::default();
-
-        grid.set_vc(
-            virt_d3(3, 3, 3),
-            GridSpace::Endpoint {
-                owner: SpicePlayer::Blue,
-                connected_lines: 0,
-            },
-        );
-
-        grid.set_vc(
-            virt_d3(-3, -3, -3),
-            GridSpace::Endpoint {
-                owner: SpicePlayer::Red,
-                connected_lines: 0,
-            },
-        );
+        // definitions
 
         let player = SpicePlayer::Blue;
-        let moves = generate_moves(&grid, player);
+
+        let blue_endpoint_coords = vec![virt_d3(3, 3, 3)];
+        let red_endpoint_coords = vec![virt_d3(-3, -3, -3)];
+
+        // generation
+
+        let mut grid: Grid = Default::default();
+
+        for &index in &blue_endpoint_coords {
+            grid.set_vc(
+                index,
+                GridSpace::Endpoint {
+                    owner: SpicePlayer::Blue,
+                    connected_lines: 0,
+                },
+            );
+        }
+
+        for &index in &red_endpoint_coords {
+            grid.set_vc(
+                index,
+                GridSpace::Endpoint {
+                    owner: SpicePlayer::Red,
+                    connected_lines: 0,
+                },
+            );
+        }
+
+        let move_cache = MoveCache::from_grid(&grid);
+        let moves = generate_moves(&grid, player, &move_cache);
 
         Self {
             grid,
             player,
             moves,
+            move_cache,
         }
     }
 
@@ -64,19 +79,21 @@ impl GameState for SpiceState {
 
     fn apply_move(&self, move_: Self::Move) -> Self {
         let mut grid = self.grid.clone();
-        apply_move(&mut grid, move_, self.next_to_play());
+        let mut move_cache = self.move_cache.clone();
+        apply_move(&mut grid, &mut move_cache, move_, self.next_to_play());
 
         let player = match self.player {
             SpicePlayer::Red => SpicePlayer::Blue,
             SpicePlayer::Blue => SpicePlayer::Red,
         };
 
-        let moves = generate_moves(&grid, player);
+        let moves = generate_moves(&grid, player, &move_cache);
 
         Self {
             grid,
             player,
             moves,
+            move_cache,
         }
     }
 

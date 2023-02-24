@@ -8,43 +8,85 @@ pub struct SpiceMove {
     pub(crate) direction: Direction,
 }
 
-pub fn generate_moves(grid: &Grid, player: SpicePlayer) -> Vec<SpiceMove> {
-    let owned_endpoint_coords = grid.enumerate_vc().filter_map(|(c, s)| match s {
-        GridSpace::Endpoint { owner, .. } if *owner == player => Some(c),
-        _ => None,
-    });
-
-    owned_endpoint_coords
-        .flat_map(|c| {
-            Direction::ALL.iter().filter_map(move |&d| {
-                grid.get_vc(c + d).and_then(|s| match s {
-                    GridSpace::Empty => Some(SpiceMove {
-                        source: c,
-                        direction: d,
-                    }),
-                    _ => None,
-                })
-            })
-        })
-        .collect()
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
+pub struct MoveCache {
+    blue_endpoint_coords: Vec<VirtD3>,
+    red_endpoint_coords: Vec<VirtD3>,
 }
 
-pub fn apply_move(grid: &mut Grid, move_: SpiceMove, player: SpicePlayer) {
-    // TODO: use anyhow instead of immediately panicking?
+impl MoveCache {
+    pub fn from_grid(grid: &Grid) -> Self {
+        let mut rval: Self = Default::default();
 
-    // this function (and the tree of subroutines it invokes) could probably be done with
-    // some kind of slice over the contents of grid, but I was running into issues with
-    // lifetimes when implementing a method in Grid for it. unsure if that would be more
-    // performant, but this is probably fine as is
+        for (c, s) in grid.enumerate_vc() {
+            if let GridSpace::Endpoint { owner, .. } = s {
+                rval.add_endpoint(*owner, c);
+            }
+        }
+
+        rval
+    }
+
+    fn add_endpoint(&mut self, player: SpicePlayer, coord: VirtD3) {
+        self._endpoint_coords_mut(player).push(coord);
+    }
+
+    fn remove_endpoint(&mut self, player: SpicePlayer, coord: VirtD3) {
+        self._endpoint_coords_mut(player).retain(|&c| c != coord);
+    }
+
+    fn endpoint_coords(&self, player: SpicePlayer) -> &Vec<VirtD3> {
+        match player {
+            SpicePlayer::Blue => &self.blue_endpoint_coords,
+            SpicePlayer::Red => &self.red_endpoint_coords,
+        }
+    }
+
+    fn _endpoint_coords_mut(&mut self, player: SpicePlayer) -> &mut Vec<VirtD3> {
+        match player {
+            SpicePlayer::Blue => &mut self.blue_endpoint_coords,
+            SpicePlayer::Red => &mut self.red_endpoint_coords,
+        }
+    }
+}
+
+pub fn generate_moves(grid: &Grid, player: SpicePlayer, move_cache: &MoveCache) -> Vec<SpiceMove> {
+    let coords = move_cache.endpoint_coords(player);
+    let mut moves: Vec<SpiceMove> = Vec::with_capacity(coords.len() * 12);
+
+    for &c in coords {
+        for d in Direction::ALL {
+            if grid.is_valid_and_empty_vc(c + d) {
+                moves.push(SpiceMove {
+                    source: c,
+                    direction: d,
+                });
+            }
+        }
+    }
+
+    moves
+}
+
+pub fn apply_move(
+    grid: &mut Grid,
+    move_cache: &mut MoveCache,
+    move_: SpiceMove,
+    player: SpicePlayer,
+) {
+    // TODO: use anyhow instead of immediately panicking?
 
     update_start_endpoint(grid, move_.source);
 
     let axis = move_.direction.axis();
     let mut ray_coord = move_.source + move_.direction;
-    while let Some(space) = grid.get_vc(ray_coord) {
+    while let Some(space) = grid.get_mut_vc(ray_coord) {
         match space {
             GridSpace::Empty => {
-                set_line_segment(grid, ray_coord, axis, false);
+                *space = GridSpace::LineSegment {
+                    axis,
+                    hardened: false,
+                };
             }
 
             GridSpace::LineSegment { axis: ax, hardened } => {
@@ -54,10 +96,13 @@ pub fn apply_move(grid: &mut Grid, move_: SpiceMove, player: SpicePlayer) {
 
                 let (dir1, dir2) = ax.directions();
 
-                cut_line_in_direction(grid, ray_coord + dir1, dir1);
-                cut_line_in_direction(grid, ray_coord + dir2, dir2);
+                *space = GridSpace::LineSegment {
+                    axis,
+                    hardened: true,
+                };
 
-                set_line_segment(grid, ray_coord, axis, true);
+                cut_line_in_direction(grid, move_cache, ray_coord + dir1, dir1);
+                cut_line_in_direction(grid, move_cache, ray_coord + dir2, dir2);
             }
 
             GridSpace::Blocked | GridSpace::Endpoint { .. } => break,
@@ -68,6 +113,7 @@ pub fn apply_move(grid: &mut Grid, move_: SpiceMove, player: SpicePlayer) {
 
     let end_coord = ray_coord - move_.direction;
     create_end_endpoint(grid, end_coord, player);
+    move_cache.add_endpoint(player, end_coord);
 }
 
 fn update_start_endpoint(grid: &mut Grid, coord: VirtD3) {
@@ -95,35 +141,29 @@ fn create_end_endpoint(grid: &mut Grid, coord: VirtD3, player: SpicePlayer) {
         .expect("should be able to set the end endpoint");
 }
 
-fn set_line_segment(grid: &mut Grid, coord: VirtD3, axis: Axis, hardened: bool) {
-    grid.set_vc(coord, GridSpace::LineSegment { axis, hardened })
-        .expect("should be able to set a line segment");
-}
-
-fn cut_line_in_direction(grid: &mut Grid, start_coord: VirtD3, dir: Direction) {
+fn cut_line_in_direction(
+    grid: &mut Grid,
+    move_cache: &mut MoveCache,
+    start_coord: VirtD3,
+    dir: Direction,
+) {
     let mut coord = start_coord;
-    while let Some(space) = grid.get_vc(coord) {
+    while let Some(space) = grid.get_mut_vc(coord) {
         match space {
             GridSpace::LineSegment { .. } => {
-                grid.set_vc(coord, GridSpace::Empty)
-                    .expect("should be able to delete a line segment");
+                *space = GridSpace::Empty;
             }
 
             GridSpace::Endpoint {
                 owner,
                 connected_lines,
             } => {
-                let new_space = if *connected_lines == 1 {
-                    GridSpace::Blocked
+                if *connected_lines > 1 {
+                    *connected_lines -= 1;
                 } else {
-                    GridSpace::Endpoint {
-                        owner: *owner,
-                        connected_lines: connected_lines - 1,
-                    }
+                    move_cache.remove_endpoint(*owner, coord);
+                    *space = GridSpace::Blocked;
                 };
-
-                grid.set_vc(coord, new_space)
-                    .expect("should be able to update an endpoint after clearing a line");
 
                 break;
             }
@@ -346,7 +386,8 @@ mod tests {
             empty_grid.set_vc_unchecked(index, value);
         }
 
-        let mut actual_moves = generate_moves(&empty_grid, player);
+        let move_cache = MoveCache::from_grid(&empty_grid);
+        let mut actual_moves = generate_moves(&empty_grid, player, &move_cache);
 
         sort_move_list(&mut actual_moves);
         sort_move_list(&mut expected_moves);
