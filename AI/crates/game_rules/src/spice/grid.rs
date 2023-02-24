@@ -123,6 +123,13 @@ impl Grid {
         self.packed_spaces[Self::indexify(index)] = Some(value);
     }
 
+    pub fn is_valid_and_empty_vc(&self, index: VirtD3) -> bool {
+        matches!(
+            self.packed_spaces.get(Self::indexify(index)),
+            Some(Some(GridSpace::Empty))
+        )
+    }
+
     #[inline]
     fn axis_length() -> usize {
         // each axis is two spans of GRID_CONSTANT_I length, plus 1 space for the origin
@@ -338,5 +345,32 @@ mod tests {
                 "{index:?} was improperly generated or converted"
             );
         }
+    }
+
+    #[rstest]
+    #[case(virt_d3(0, 0, 0))]
+    #[case(virt_d3(1, 2, 3))]
+    #[case(virt_d3(3, 3, 3))]
+    #[case(virt_d3(-3, -3, -3))]
+    fn is_valid_and_empty_vc_is_true_for_empty_spaces_in_the_grid(
+        empty_grid: Grid,
+        #[case] coord: VirtD3,
+    ) {
+        assert!(empty_grid.is_valid_and_empty_vc(coord));
+    }
+
+    #[rstest]
+    #[case(virt_d3(5, 5, 5))]
+    #[case(virt_d3(i8::MAX, i8::MAX, i8::MAX))]
+    #[case(virt_d3(-4, -4, 4))]
+    #[case(virt_d3(i8::MIN, i8::MIN, i8::MIN))]
+    fn is_valid_and_empty_vc_is_false_outside_the_grid(empty_grid: Grid, #[case] coord: VirtD3) {
+        assert!(!empty_grid.is_valid_and_empty_vc(coord));
+    }
+
+    #[rstest]
+    fn is_valid_and_empty_vc_is_false_for_non_empty(mut empty_grid: Grid) {
+        empty_grid.set_vc_unchecked(virt_d3(0, 0, 0), GridSpace::Blocked);
+        assert!(!empty_grid.is_valid_and_empty_vc(virt_d3(0, 0, 0)));
     }
 }
