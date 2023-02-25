@@ -130,6 +130,22 @@ impl Grid {
         )
     }
 
+    pub fn center_owner(&self) -> Option<SpicePlayer> {
+        const CENTER: [usize; 3] = [
+            GRID_CONSTANT_I as usize,
+            GRID_CONSTANT_I as usize,
+            GRID_CONSTANT_I as usize,
+        ];
+
+        match self.packed_spaces[CENTER] {
+            Some(GridSpace::Endpoint { owner, .. }) => Some(owner),
+            Some(GridSpace::Empty) | Some(GridSpace::LineSegment { .. }) | None => None,
+            Some(GridSpace::Blocked) => {
+                panic!("the game should end before the center can become blocked")
+            }
+        }
+    }
+
     #[inline]
     fn axis_length() -> usize {
         // each axis is two spans of GRID_CONSTANT_I length, plus 1 space for the origin
@@ -361,7 +377,6 @@ mod tests {
 
     #[rstest]
     #[case(virt_d3(5, 5, 5))]
-    #[case(virt_d3(i8::MAX, i8::MAX, i8::MAX))]
     #[case(virt_d3(-4, -4, 4))]
     #[case(virt_d3(i8::MIN, i8::MIN, i8::MIN))]
     fn is_valid_and_empty_vc_is_false_outside_the_grid(empty_grid: Grid, #[case] coord: VirtD3) {

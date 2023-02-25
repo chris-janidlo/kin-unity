@@ -68,6 +68,18 @@ pub fn generate_moves(grid: &Grid, player: SpicePlayer, move_cache: &MoveCache) 
     moves
 }
 
+pub fn out_of_moves(grid: &Grid, player: SpicePlayer, move_cache: &MoveCache) -> bool {
+    for &c in move_cache.endpoint_coords(player) {
+        for d in Direction::ALL {
+            if grid.is_valid_and_empty_vc(c + d) {
+                return false;
+            }
+        }
+    }
+
+    true
+}
+
 pub fn apply_move(
     grid: &mut Grid,
     move_cache: &mut MoveCache,

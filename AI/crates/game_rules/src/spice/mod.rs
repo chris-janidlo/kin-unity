@@ -11,12 +11,14 @@ use mcts::GameState;
 
 use self::{coord::*, direction::*, grid::*, moves::*, players::*};
 
+const MAX_MOVES: u16 = 400;
+
 #[derive(Debug, PartialEq)]
 pub struct SpiceState {
     grid: Grid,
     player: SpicePlayer,
-    moves: Vec<SpiceMove>,
     move_cache: MoveCache,
+    move_count: u16,
 }
 
 impl GameState for SpiceState {
@@ -59,18 +61,17 @@ impl GameState for SpiceState {
         }
 
         let move_cache = MoveCache::from_grid(&grid);
-        let moves = generate_moves(&grid, player, &move_cache);
 
         Self {
             grid,
             player,
-            moves,
             move_cache,
+            move_count: 0,
         }
     }
 
     fn available_moves(&self) -> Self::MoveIterator {
-        self.moves.clone().into_iter()
+        generate_moves(&self.grid, self.player, &self.move_cache).into_iter()
     }
 
     fn next_to_play(&self) -> Self::Player {
@@ -87,13 +88,11 @@ impl GameState for SpiceState {
             SpicePlayer::Blue => SpicePlayer::Red,
         };
 
-        let moves = generate_moves(&grid, player, &move_cache);
-
         Self {
             grid,
             player,
-            moves,
             move_cache,
+            move_count: self.move_count + 1,
         }
     }
 
@@ -109,10 +108,18 @@ impl GameState for SpiceState {
     }
 
     fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
-        match self.moves.len() {
-            0 if for_player == self.player => Some(-1.0),
-            0 if for_player != self.player => Some(1.0),
-            _ => None,
+        #[inline]
+        fn is_draw(state: &SpiceState) -> bool {
+            state.move_count >= MAX_MOVES
+                || out_of_moves(&state.grid, state.player, &state.move_cache)
+        }
+
+        if let Some(owner) = self.grid.center_owner() {
+            Some(if owner == for_player { 1.0 } else { -1.0 })
+        } else if is_draw(self) {
+            Some(0.0)
+        } else {
+            None
         }
     }
 }
