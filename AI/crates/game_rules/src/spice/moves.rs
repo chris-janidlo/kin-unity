@@ -407,5 +407,163 @@ mod tests {
         assert_eq!(actual_moves, expected_moves);
     }
 
-    // TODO: test apply_move and associated subroutines
+    #[rstest]
+    fn apply_move_basic_functionality(mut empty_grid: Grid) {
+        let player = SpicePlayer::Blue;
+        let start_pos = virt_d3(3, 3, 3);
+        let end_pos = virt_d3(-3, 3, 3);
+        let dir = Direction::DownSouth;
+
+        empty_grid.set_vc_unchecked(
+            start_pos,
+            GridSpace::Endpoint {
+                owner: player,
+                connected_lines: 0,
+            },
+        );
+        let move_ = SpiceMove {
+            source: start_pos,
+            direction: dir,
+        };
+        let mut move_cache = MoveCache::from_grid(&empty_grid);
+
+        apply_move(&mut empty_grid, &mut move_cache, move_, SpicePlayer::Blue);
+
+        assert_eq!(
+            empty_grid.get_vc(start_pos),
+            Some(&GridSpace::Endpoint {
+                owner: player,
+                connected_lines: 1
+            }),
+            "start space has the wrong values"
+        );
+
+        assert_eq!(
+            empty_grid.get_vc(end_pos),
+            Some(&GridSpace::Endpoint {
+                owner: player,
+                connected_lines: 1
+            }),
+            "end space has the wrong values"
+        );
+
+        let mut line_coord = start_pos + dir;
+        let axis = dir.axis();
+        while line_coord != end_pos {
+            assert_eq!(
+                empty_grid.get_vc(line_coord),
+                Some(&GridSpace::LineSegment {
+                    axis,
+                    hardened: false
+                }),
+                "space at {line_coord} has the wrong values"
+            );
+
+            line_coord += dir;
+        }
+    }
+
+    #[rstest]
+    fn apply_move_cuts_existing_line(mut empty_grid: Grid) {
+        let move_player = SpicePlayer::Blue;
+        let line_player = SpicePlayer::Blue;
+        let move_source = virt_d3(3, 3, 3);
+        let move_dir = Direction::DownSouth;
+        let line_pos = virt_d3(0, 3, 3);
+        let line_axis = Axis::NeSw;
+        let line_dirs = line_axis.directions();
+
+        empty_grid.set_vc_unchecked(
+            move_source,
+            GridSpace::Endpoint {
+                owner: move_player,
+                connected_lines: 0,
+            },
+        );
+        empty_grid.set_vc_unchecked(
+            line_pos,
+            GridSpace::LineSegment {
+                axis: line_axis,
+                hardened: false,
+            },
+        );
+        empty_grid.set_vc_unchecked(
+            line_pos + line_dirs.0,
+            GridSpace::Endpoint {
+                owner: line_player,
+                connected_lines: 1,
+            },
+        );
+        empty_grid.set_vc_unchecked(
+            line_pos + line_dirs.1,
+            GridSpace::Endpoint {
+                owner: line_player,
+                connected_lines: 1,
+            },
+        );
+        let move_ = SpiceMove {
+            source: move_source,
+            direction: move_dir,
+        };
+        let mut move_cache = MoveCache::from_grid(&empty_grid);
+
+        apply_move(&mut empty_grid, &mut move_cache, move_, move_player);
+
+        assert_eq!(
+            empty_grid.get_vc(line_pos),
+            Some(&GridSpace::LineSegment {
+                axis: move_dir.axis(),
+                hardened: true
+            }),
+            "space at the cut point has the wrong values"
+        );
+
+        assert_eq!(
+            empty_grid.get_vc(line_pos + line_dirs.0),
+            Some(&GridSpace::Blocked),
+            "first space adjacent to the cut point has the wrong values"
+        );
+
+        assert_eq!(
+            empty_grid.get_vc(line_pos + line_dirs.1),
+            Some(&GridSpace::Blocked),
+            "second space adjacent to the cut point has the wrong values"
+        );
+    }
+
+    #[rstest]
+    #[case(GridSpace::Blocked)]
+    #[case(GridSpace::LineSegment { axis: Axis::NeSw, hardened: true })]
+    #[case(GridSpace::Endpoint { owner: SpicePlayer::Red, connected_lines: 1 })]
+    fn apply_move_stops_at_blocked_spaces(mut empty_grid: Grid, #[case] blocker: GridSpace) {
+        let source_pos = virt_d3(-3, -3, -3);
+        let player = SpicePlayer::Red;
+        let dir = Direction::UpNorth;
+        let blocker_pos = virt_d3(0, -3, -3);
+
+        empty_grid.set_vc_unchecked(
+            source_pos,
+            GridSpace::Endpoint {
+                owner: player,
+                connected_lines: 0,
+            },
+        );
+        empty_grid.set_vc_unchecked(blocker_pos, blocker);
+        let move_ = SpiceMove {
+            source: source_pos,
+            direction: dir,
+        };
+        let mut move_cache = MoveCache::from_grid(&empty_grid);
+
+        apply_move(&mut empty_grid, &mut move_cache, move_, player);
+
+        assert_eq!(
+            empty_grid.get_vc(blocker_pos - dir),
+            Some(&GridSpace::Endpoint {
+                owner: player,
+                connected_lines: 1
+            }),
+            "space before blocker has the wrong values"
+        );
+    }
 }
