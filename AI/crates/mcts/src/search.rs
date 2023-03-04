@@ -20,6 +20,7 @@ where
     T: GameState,
 {
     game_state: T,
+    move_: T::Move,
     score: f32,
     visits: i32,
     unexpanded_moves: T::MoveIterator,
@@ -51,8 +52,7 @@ where
         let max_child = self.best_child(root, 0.);
         self.previous_choice = Some(max_child);
 
-        let chosen_state = &self.node(max_child).game_state;
-        self.node(root).game_state.move_with_result(chosen_state)
+        self.node(max_child).move_.clone()
     }
 
     fn node(&self, id: NodeId) -> &MctsNode<T> {
@@ -67,7 +67,7 @@ where
         if self.previous_choice.is_none() {
             return self
                 .arena
-                .new_node(MctsNode::empty_from_state(starting_state));
+                .new_node(MctsNode::new(starting_state, Default::default()));
         }
 
         let old_root = self.previous_choice.unwrap();
@@ -85,7 +85,7 @@ where
             self.arena.clear();
 
             self.arena
-                .new_node(MctsNode::empty_from_state(starting_state))
+                .new_node(MctsNode::new(starting_state, Default::default()))
         }
     }
 
@@ -95,12 +95,11 @@ where
         if let Some(val) = initial_state.terminal_value(for_player) {
             val
         } else {
-            Self::rollout(
-                &initial_state
-                    .default_policy(&mut initial_state.available_moves())
-                    .unwrap(),
-                for_player,
-            )
+            let (_, state) = initial_state
+                .default_policy(&mut initial_state.available_moves())
+                .expect("there should be moves to explore if the node is not terminal");
+
+            Self::rollout(&state, for_player)
         }
     }
 
@@ -124,8 +123,8 @@ where
 
         node.game_state
             .default_policy(&mut node.unexpanded_moves)
-            .map(|game_state| {
-                let child = self.arena.new_node(MctsNode::empty_from_state(game_state));
+            .map(|(move_, game_state)| {
+                let child = self.arena.new_node(MctsNode::new(game_state, move_));
                 node_id.append(child, &mut self.arena);
 
                 child
@@ -185,9 +184,10 @@ impl<T> MctsNode<T>
 where
     T: GameState,
 {
-    pub fn empty_from_state(game_state: T) -> Self {
+    fn new(game_state: T, move_: T::Move) -> Self {
         MctsNode {
             unexpanded_moves: game_state.available_moves(),
+            move_,
             game_state,
             score: 0.,
             visits: 0,
@@ -195,7 +195,7 @@ where
     }
 
     #[inline]
-    pub fn visits_f(&self) -> f32 {
+    fn visits_f(&self) -> f32 {
         self.visits as f32
     }
 }
@@ -233,12 +233,8 @@ mod tests {
             self % 2 == 0
         }
 
-        fn apply_move(&self, move_: Self::Move) -> Self {
+        fn apply_move(&self, move_: &Self::Move) -> Self {
             self + move_
-        }
-
-        fn move_with_result(&self, result: &Self) -> Self::Move {
-            result - self
         }
 
         fn terminal_value(&self, for_player: Self::Player) -> Option<f32> {
@@ -269,10 +265,14 @@ mod tests {
         parent: Option<NodeId>,
     ) -> (MockGameState, NodeId) {
         let state: MockGameState = rand::thread_rng().gen_range(0..10);
-        let node_id = searcher.arena.new_node(MctsNode::empty_from_state(state));
+        let node_id: NodeId;
 
         if let Some(parent_id) = parent {
+            let move_ = searcher.node(parent_id).game_state - state;
+            node_id = searcher.arena.new_node(MctsNode::new(state, move_));
             parent_id.append(node_id, &mut searcher.arena);
+        } else {
+            node_id = searcher.arena.new_node(MctsNode::new(state, 0));
         }
 
         (state, node_id)
@@ -282,19 +282,36 @@ mod tests {
         searcher: &mut Searcher<MockGameState>,
         parent: Option<NodeId>,
     ) -> (MockGameState, NodeId) {
-        let state: MockGameState = rand::thread_rng().gen_range(0..10);
-        let node_id = searcher.arena.new_node(MctsNode {
-            game_state: state,
-            score: rand::thread_rng().gen_range(-12.0..12.0),
-            visits: rand::thread_rng().gen_range(1..100),
-            unexpanded_moves: state.available_moves(),
-        });
+        let game_state: MockGameState = rand::thread_rng().gen_range(0..10);
+        let score = rand::thread_rng().gen_range(-12.0..12.0);
+        let visits = rand::thread_rng().gen_range(1..100);
+        let unexpanded_moves = game_state.available_moves();
+
+        let node_id: NodeId;
 
         if let Some(parent_id) = parent {
+            let move_ = searcher.node(parent_id).game_state - game_state;
+            let node = MctsNode {
+                game_state,
+                move_,
+                score,
+                visits,
+                unexpanded_moves,
+            };
+            node_id = searcher.arena.new_node(node);
             parent_id.append(node_id, &mut searcher.arena);
+        } else {
+            let node = MctsNode {
+                game_state,
+                move_: 0,
+                score,
+                visits,
+                unexpanded_moves,
+            };
+            node_id = searcher.arena.new_node(node);
         }
 
-        (state, node_id)
+        (game_state, node_id)
     }
 
     fn consume_unexpanded_moves(searcher: &mut Searcher<MockGameState>, node_id: NodeId) {
@@ -381,15 +398,19 @@ mod tests {
         // arbitrary values chosen so that child a has a higher UCB1 when
         // effective_exploration_factor is set to 0, and child b is higher when
         // effective_exploration_factor is set to 1
-        let mut parent: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        let mut parent: MctsNode<MockGameState> = MctsNode::new(rand::random(), 0);
         parent.score = -1.;
         parent.visits = 3;
 
-        let mut child_a: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        let child_a_state = rand::random();
+        let child_a_move = parent.game_state - child_a_state;
+        let mut child_a: MctsNode<MockGameState> = MctsNode::new(child_a_state, child_a_move);
         child_a.score = 5.;
         child_a.visits = 50;
 
-        let mut child_b: MctsNode<MockGameState> = MctsNode::empty_from_state(rand::random());
+        let child_b_state = rand::random();
+        let child_b_move = parent.game_state - child_b_state;
+        let mut child_b: MctsNode<MockGameState> = MctsNode::new(child_b_state, child_b_move);
         child_b.score = 1.;
         child_b.visits = 20;
 
@@ -514,7 +535,7 @@ mod tests {
 
     #[rstest]
     fn tree_policy_stops_if_given_terminal_state(mut searcher: Searcher<MockGameState>) {
-        let mut data = MctsNode::empty_from_state(10);
+        let mut data = MctsNode::new(10, 0);
         data.unexpanded_moves = vec![0].into_iter();
         let node = searcher.arena.new_node(data);
 
@@ -535,13 +556,14 @@ mod tests {
         consume_unexpanded_moves(&mut searcher, parent.1);
 
         // "worst" by UCB1
-        let mut worst_state = MctsNode::empty_from_state(0);
+        let mut worst_state = MctsNode::new(0, 0);
         worst_state.visits = 1;
         let worst_node = searcher.arena.new_node(worst_state);
         parent.1.append(worst_node, &mut searcher.arena);
 
         let terminal_state = MctsNode {
             game_state: 10,
+            move_: 10,
             unexpanded_moves: vec![0].into_iter(),
             visits: 1,
             score: 1.0,
@@ -585,7 +607,7 @@ mod tests {
         let move_ = searcher.search(MockGameState::initial_state());
 
         let chosen = searcher.node(searcher.previous_choice.unwrap());
-        let returned_game_state = MockGameState::initial_state().apply_move(move_);
+        let returned_game_state = MockGameState::initial_state().apply_move(&move_);
 
         assert_eq!(chosen.game_state, returned_game_state);
     }

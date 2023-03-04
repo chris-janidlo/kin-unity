@@ -4,8 +4,17 @@ use super::{coord::*, direction::*, grid::*, players::*, SpiceState};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct SpiceMove {
-    pub(crate) source: VirtD3,
-    pub(crate) direction: Direction,
+    source: VirtD3,
+    direction: Direction,
+}
+
+impl Default for SpiceMove {
+    fn default() -> Self {
+        Self {
+            source: virt_d3(0, 0, 0),
+            direction: Direction::DownEast,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Default)]
@@ -83,7 +92,7 @@ pub fn out_of_moves(grid: &Grid, player: SpicePlayer, move_cache: &MoveCache) ->
 pub fn apply_move(
     grid: &mut Grid,
     move_cache: &mut MoveCache,
-    move_: SpiceMove,
+    move_: &SpiceMove,
     player: SpicePlayer,
 ) {
     // TODO: use anyhow instead of immediately panicking?
@@ -427,7 +436,7 @@ mod tests {
         };
         let mut move_cache = MoveCache::from_grid(&empty_grid);
 
-        apply_move(&mut empty_grid, &mut move_cache, move_, SpicePlayer::Blue);
+        apply_move(&mut empty_grid, &mut move_cache, &move_, SpicePlayer::Blue);
 
         assert_eq!(
             empty_grid.get_vc(start_pos),
@@ -507,7 +516,7 @@ mod tests {
         };
         let mut move_cache = MoveCache::from_grid(&empty_grid);
 
-        apply_move(&mut empty_grid, &mut move_cache, move_, move_player);
+        apply_move(&mut empty_grid, &mut move_cache, &move_, move_player);
 
         assert_eq!(
             empty_grid.get_vc(line_pos),
@@ -555,7 +564,7 @@ mod tests {
         };
         let mut move_cache = MoveCache::from_grid(&empty_grid);
 
-        apply_move(&mut empty_grid, &mut move_cache, move_, player);
+        apply_move(&mut empty_grid, &mut move_cache, &move_, player);
 
         assert_eq!(
             empty_grid.get_vc(blocker_pos - dir),
