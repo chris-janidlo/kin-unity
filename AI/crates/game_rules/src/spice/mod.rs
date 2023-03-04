@@ -78,7 +78,7 @@ impl GameState for SpiceState {
         self.player
     }
 
-    fn apply_move(&self, move_: Self::Move) -> Self {
+    fn apply_move(&self, move_: &Self::Move) -> Self {
         let mut grid = self.grid.clone();
         let mut move_cache = self.move_cache.clone();
         apply_move(&mut grid, &mut move_cache, move_, self.next_to_play());
@@ -93,17 +93,6 @@ impl GameState for SpiceState {
             player,
             move_cache,
             move_count: self.move_count + 1,
-        }
-    }
-
-    fn move_with_result(&self, result: &Self) -> Self::Move {
-        // TODO: this is a dummy implementation
-
-        println!("{result:?}");
-
-        SpiceMove {
-            source: virt_d3(0, 0, 0),
-            direction: Direction::DownEast,
         }
     }
 
