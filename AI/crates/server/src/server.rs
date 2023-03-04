@@ -9,7 +9,8 @@ pub fn start() -> Result<()> {
     let listener = TcpListener::bind(addr)?;
     let port = listener.local_addr()?.port();
 
-    // pad to 5 places for convenience on reader side
+    // write to stdout so that Unity can read the port. padded to 5 places for
+    // convenience
     println!("{port:05}");
 
     for stream in listener.incoming() {
