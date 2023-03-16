@@ -4,104 +4,115 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
 
-public class CameraController : MonoBehaviour
+namespace Kin.Spice
 {
-    [SerializeField]
-    float panSensitivity,
-        rotateSensitivity,
-        zoomSensitivity;
-
-    [SerializeField]
-    AnimationCurve zoomPositionCurve,
-        zoomFovCurve;
-
-    [SerializeField]
-    float zoomSmoothTime;
-
-    [SerializeField]
-    Transform rigTransform,
-        cameraTransform;
-
-    [SerializeField]
-    new Camera camera;
-
-    Vector2 desiredRotation;
-    float desiredZoomLevel,
-        currentZoomLevel;
-
-    Tween zoomTween;
-
-    void Start()
+    public class CameraController : MonoBehaviour
     {
-        desiredZoomLevel = currentZoomLevel = 0.5f;
-        desiredRotation = (Vector2)rigTransform.localEulerAngles;
-        ApplyZoomLevel();
-    }
+        [SerializeField]
+        float panSensitivity,
+            rotateSensitivity,
+            zoomSensitivity;
 
-    public void OnCameraPan(InputAction.CallbackContext context)
-    {
-        if (!context.performed)
-            return;
+        [SerializeField]
+        AnimationCurve zoomPositionCurve,
+            zoomFovCurve;
 
-        var delta = context.ReadValue<Vector2>();
-        rigTransform.localPosition -= rigTransform.rotation * delta * panSensitivity;
+        [SerializeField]
+        float zoomSmoothTime;
 
-        // TODO: clamp pan https://dynalist.io/d/kxguqztlKqFtRz6IeZQXFajg#z=eDwWMLTBMBht64SeDlzGgd58
-    }
+        [SerializeField]
+        Transform rigTransform,
+            cameraTransform;
 
-    public void OnCameraRotate(InputAction.CallbackContext context)
-    {
-        if (!context.performed)
-            return;
+        [SerializeField]
+        new Camera camera;
 
-        var delta = context.ReadValue<Vector2>();
+        Vector2 desiredRotation;
+        float desiredZoomLevel,
+            currentZoomLevel;
 
-        desiredRotation += new Vector2(-delta.y * rotateSensitivity, delta.x * rotateSensitivity);
-        desiredRotation.x = Mathf.Clamp(desiredRotation.x, -90, 90);
+        Tween zoomTween;
 
-        rigTransform.localEulerAngles = desiredRotation;
-    }
-
-    public void OnCameraZoom(InputAction.CallbackContext context)
-    {
-        if (!context.performed)
-            return;
-
-        var delta = context.ReadValue<float>();
-
-        if (context.control.path.Contains("Mouse"))
+        void Start()
         {
-            // because different platforms use different scroll-wheel deltas (eg Windows
-            // uses +-120 and macOS uses a value in [-1, 1]), just read the sign
-            delta = Mathf.Sign(delta);
+            desiredZoomLevel = currentZoomLevel = 0.5f;
+            desiredRotation = (Vector2)rigTransform.localEulerAngles;
+            ApplyZoomLevel();
         }
 
-        desiredZoomLevel = Mathf.Clamp01(desiredZoomLevel + delta * zoomSensitivity);
+        public void OnCameraPan(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+                return;
 
-        if (zoomTween != null)
-            zoomTween.Kill();
+            var delta = context.ReadValue<Vector2>();
+            rigTransform.localPosition -= rigTransform.rotation * delta * panSensitivity;
 
-        zoomTween = DOTween
-            .To(() => currentZoomLevel, x => currentZoomLevel = x, desiredZoomLevel, zoomSmoothTime)
-            .SetEase(Ease.Linear)
-            .OnKill(() => zoomTween = null)
-            .OnUpdate(() => ApplyZoomLevel());
-    }
+            // TODO: clamp pan https://dynalist.io/d/kxguqztlKqFtRz6IeZQXFajg#z=eDwWMLTBMBht64SeDlzGgd58
+        }
 
-    public void OnCameraReset(InputAction.CallbackContext context)
-    {
-        if (!context.performed)
-            return;
+        public void OnCameraRotate(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+                return;
 
-        rigTransform.localPosition = Vector3.zero;
-    }
+            var delta = context.ReadValue<Vector2>();
 
-    void ApplyZoomLevel()
-    {
-        var z = zoomPositionCurve.Evaluate(currentZoomLevel);
-        cameraTransform.localPosition = Vector3.forward * z;
+            desiredRotation += new Vector2(
+                -delta.y * rotateSensitivity,
+                delta.x * rotateSensitivity
+            );
+            desiredRotation.x = Mathf.Clamp(desiredRotation.x, -90, 90);
 
-        var fov = zoomFovCurve.Evaluate(currentZoomLevel);
-        camera.fieldOfView = fov;
+            rigTransform.localEulerAngles = desiredRotation;
+        }
+
+        public void OnCameraZoom(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+                return;
+
+            var delta = context.ReadValue<float>();
+
+            if (context.control.path.Contains("Mouse"))
+            {
+                // because different platforms use different scroll-wheel deltas (eg Windows
+                // uses +-120 and macOS uses a value in [-1, 1]), just read the sign
+                delta = Mathf.Sign(delta);
+            }
+
+            desiredZoomLevel = Mathf.Clamp01(desiredZoomLevel + delta * zoomSensitivity);
+
+            if (zoomTween != null)
+                zoomTween.Kill();
+
+            zoomTween = DOTween
+                .To(
+                    () => currentZoomLevel,
+                    x => currentZoomLevel = x,
+                    desiredZoomLevel,
+                    zoomSmoothTime
+                )
+                .SetEase(Ease.Linear)
+                .OnKill(() => zoomTween = null)
+                .OnUpdate(() => ApplyZoomLevel());
+        }
+
+        public void OnCameraReset(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+                return;
+
+            rigTransform.localPosition = Vector3.zero;
+        }
+
+        void ApplyZoomLevel()
+        {
+            var z = zoomPositionCurve.Evaluate(currentZoomLevel);
+            cameraTransform.localPosition = Vector3.forward * z;
+
+            var fov = zoomFovCurve.Evaluate(currentZoomLevel);
+            camera.fieldOfView = fov;
+        }
     }
 }

@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
-namespace Editor
+namespace Kin.Editor
 {
     public static class BuildScripts
     {

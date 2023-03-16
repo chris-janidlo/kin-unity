@@ -6,30 +6,33 @@ using TMPro;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class NativePluginTest : MonoBehaviour
+namespace Kin
 {
-    public TextMeshProUGUI text;
-
-    void Start()
+    public class NativePluginTest : MonoBehaviour
     {
-        using (var server = new AiServer())
+        public TextMeshProUGUI text;
+
+        void Start()
         {
-            var tcpClient = new TcpClient();
-            tcpClient.Connect(IPAddress.Loopback, server.Port);
-            var stream = tcpClient.GetStream();
+            using (var server = new AiServer())
+            {
+                var tcpClient = new TcpClient();
+                tcpClient.Connect(IPAddress.Loopback, server.Port);
+                var stream = tcpClient.GetStream();
 
-            var encoding = new ASCIIEncoding();
-            var command = encoding.GetBytes("\"go\"");
+                var encoding = new ASCIIEncoding();
+                var command = encoding.GetBytes("\"go\"");
 
-            var buffer = new byte[1];
+                var buffer = new byte[1];
 
-            stream.Write(command);
-            stream.Read(buffer);
-            var response = buffer[0];
+                stream.Write(command);
+                stream.Read(buffer);
+                var response = buffer[0];
 
-            text.text = response.ToString();
+                text.text = response.ToString();
 
-            server.IntentionallyError();
+                server.IntentionallyError();
+            }
         }
     }
 }
