@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using DG.Tweening;
 
-namespace Kin.Spice
+namespace Kin.Player.SpiceUI
 {
     public class CameraController : MonoBehaviour
     {

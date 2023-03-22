@@ -1,6 +1,6 @@
 {
     "name": "Editor",
-    "rootNamespace": "",
+    "rootNamespace": "Kin.Editor",
     "references": [],
     "includePlatforms": [
         "Editor"

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Kin.Spice
+namespace Kin.Player.SpiceUI
 {
     [ExecuteAlways]
     public class SphericalGridGenerator : MonoBehaviour

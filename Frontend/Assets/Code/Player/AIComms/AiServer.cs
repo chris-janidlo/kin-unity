@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using UnityEngine;
 
-namespace Kin
+namespace Kin.Player.AIComms
 {
     public class AiServer : IDisposable
     {

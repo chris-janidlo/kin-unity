@@ -1,6 +1,6 @@
 {
     "name": "Tests.Player",
-    "rootNamespace": "",
+    "rootNamespace": "Kin.Tests.Player",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

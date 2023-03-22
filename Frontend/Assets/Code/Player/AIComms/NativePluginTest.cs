@@ -6,7 +6,7 @@ using TMPro;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Kin
+namespace Kin.Player.AIComms
 {
     public class NativePluginTest : MonoBehaviour
     {
