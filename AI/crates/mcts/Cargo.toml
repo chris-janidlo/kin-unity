@@ -1,5 +1,6 @@
 [package]
 name = "mcts"
+description = "Generic Monte Carlo Tree Search implementation"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true

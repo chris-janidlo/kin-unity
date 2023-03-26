@@ -1,5 +1,6 @@
 [package]
 name = "bootstrapper"
+description = "cdylib for Unity to call in order to launch server as a subprocess (since Unity can't do that itself)"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
