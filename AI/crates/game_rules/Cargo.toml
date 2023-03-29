@@ -1,6 +1,6 @@
 [package]
 name = "game_rules"
-description = "Authority on rules for various games-within-the-game of Kin, including implementations of MCTS traits."
+description = "Authority on rules for various games-within-the-game of Kin, including implementations of MCTS and arbiter traits"
 version = "0.1.0"
 edition.workspace = true
 authors.workspace = true

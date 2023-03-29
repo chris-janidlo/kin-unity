@@ -1,0 +1,9 @@
+[package]
+name = "arbiter"
+description = "Traits for facilitating communication between authoritative game rule implementations and consumers"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+rstest = { workspace = true }
