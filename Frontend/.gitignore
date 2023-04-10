@@ -66,10 +66,9 @@ ehthumbs.db
 Thumbs.db
 
 # Built AI files
-*.dll*
-*.bundle*
-*.dylib*
-ai_server*
+bootstrapper.dylib
+bootstrapper.dll
+ai_server
 
 # AI crash dumps
 ai_bootstrap_crash_*
