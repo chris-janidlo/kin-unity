@@ -67,8 +67,11 @@ Thumbs.db
 
 # Built AI files
 bootstrapper.dylib
+bootstrapper.dylib.meta
 bootstrapper.dll
+bootstrapper.dll.meta
 ai_server
+ai_server.meta
 
 # AI crash dumps
 ai_bootstrap_crash_*
