@@ -10,7 +10,7 @@ namespace Code.Player.AIComms
 
         public AiServer()
         {
-            var result = open_server();
+            int result = open_server();
 
             if (result < 0)
                 throw new AiServerException(nameof(open_server), result);
@@ -25,7 +25,7 @@ namespace Code.Player.AIComms
                 if (port.HasValue)
                     return port.Value;
 
-                var result = get_tcp_port(pid);
+                int result = get_tcp_port(pid);
 
                 if (result < 0)
                     throw new AiServerException(nameof(get_tcp_port), result);
@@ -37,11 +37,12 @@ namespace Code.Player.AIComms
 
         public void Dispose()
         {
-            var code = close_server(pid);
+            int code = close_server(pid);
 
             if (code < 0)
                 throw new AiServerException(nameof(close_server), code);
         }
+
         // note that my first choice when implementing this was a finalizer, to not require
         // manual closing. however, the current implementation of `bootstrapper` uses
         // thread-local memory to store server PIDs, and finalizers are called in a separate
@@ -60,7 +61,7 @@ namespace Code.Player.AIComms
 
         public void IntentionallyError()
         {
-            var code = close_server(-69);
+            int code = close_server(-69);
 
             if (code < 0)
                 throw new AiServerException(nameof(close_server), code);
@@ -70,14 +71,10 @@ namespace Code.Player.AIComms
     public class AiServerException : Exception
     {
         public AiServerException(string methodName, int code)
-            : base(FormatMessage(methodName, code))
-        {
-        }
+            : base(FormatMessage(methodName, code)) { }
 
         public AiServerException(string methodName, int code, Exception inner)
-            : base(FormatMessage(methodName, code), inner)
-        {
-        }
+            : base(FormatMessage(methodName, code), inner) { }
 
         public static string FormatMessage(string methodName, int code)
         {

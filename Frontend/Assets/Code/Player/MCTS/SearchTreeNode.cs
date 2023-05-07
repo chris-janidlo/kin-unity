@@ -33,7 +33,9 @@ namespace Code.Player.MCTS
             Visits = 0;
         }
 
-        public SearchTreeNode<TPlayer, TState, TAction> FindSearchCandidate(double explorationFactor)
+        public SearchTreeNode<TPlayer, TState, TAction> FindSearchCandidate(
+            double explorationFactor
+        )
         {
             return TreePolicy(this, explorationFactor);
         }
@@ -41,16 +43,16 @@ namespace Code.Player.MCTS
         public ChildSearchTreeNode<TPlayer, TState, TAction> BestChild(double explorationFactor)
         {
             ChildSearchTreeNode<TPlayer, TState, TAction> bestChild = null;
-            var bestUcb1Score = double.NegativeInfinity;
+            double bestUcb1Score = double.NegativeInfinity;
 
-            var parentVisitTerm = 2.0 * Math.Log(Visits);
+            double parentVisitTerm = 2.0 * Math.Log(Visits);
 
             foreach (var child in Children)
             {
-                var exploitationTerm = child.Score / child.Visits;
-                var explorationTerm = Math.Sqrt(parentVisitTerm / child.Visits);
+                double exploitationTerm = child.Score / child.Visits;
+                double explorationTerm = Math.Sqrt(parentVisitTerm / child.Visits);
 
-                var ucb1 = exploitationTerm + explorationFactor * explorationTerm;
+                double ucb1 = exploitationTerm + explorationFactor * explorationTerm;
 
                 if (ucb1 > bestUcb1Score)
                 {
@@ -70,9 +72,11 @@ namespace Code.Player.MCTS
         public ChildSearchTreeNode<TPlayer, TState, TAction> Expand()
         {
             TAction action;
-            using (var avail = new NativeList<TAction>(GameState.ActionArrayMaxSize, Allocator.Temp))
+            using (
+                var avail = new NativeList<TAction>(GameState.ActionArrayMaxSize, Allocator.Temp)
+            )
             {
-                foreach (var a in UnvisitedActions)
+                foreach (TAction a in UnvisitedActions)
                     avail.AddNoResize(a);
 
                 action = GameState.DefaultPolicy(avail);
@@ -80,7 +84,7 @@ namespace Code.Player.MCTS
 
             UnvisitedActions.Remove(action);
 
-            var newState = GameState.ApplyAction(action);
+            TState newState = GameState.ApplyAction(action);
             return new ChildSearchTreeNode<TPlayer, TState, TAction>(newState, this, action);
         }
 
@@ -91,10 +95,11 @@ namespace Code.Player.MCTS
 
         private static SearchTreeNode<TPlayer, TState, TAction> TreePolicy(
             SearchTreeNode<TPlayer, TState, TAction> root,
-            double explorationFactor)
+            double explorationFactor
+        )
         {
             var candidate = root;
-            var rootPlayer = root.GameState.NextToPlay();
+            TPlayer rootPlayer = root.GameState.NextToPlay();
 
             while (candidate.GameState.ValueForPlayer(rootPlayer) == null)
                 if (candidate.UnvisitedActions.Count > 0)
@@ -106,7 +111,8 @@ namespace Code.Player.MCTS
         }
     }
 
-    internal class ChildSearchTreeNode<TPlayer, TState, TAction> : SearchTreeNode<TPlayer, TState, TAction>
+    internal class ChildSearchTreeNode<TPlayer, TState, TAction>
+        : SearchTreeNode<TPlayer, TState, TAction>
         where TPlayer : Enum
         where TState : struct, IGameState<TPlayer, TState, TAction>
         where TAction : unmanaged, IGameAction
@@ -114,8 +120,12 @@ namespace Code.Player.MCTS
         public TAction IncomingAction;
         public SearchTreeNode<TPlayer, TState, TAction> Parent;
 
-        public ChildSearchTreeNode(TState state, SearchTreeNode<TPlayer, TState, TAction> parent,
-            TAction incomingAction) : base(state)
+        public ChildSearchTreeNode(
+            TState state,
+            SearchTreeNode<TPlayer, TState, TAction> parent,
+            TAction incomingAction
+        )
+            : base(state)
         {
             Parent = parent;
             parent.Children.Add(this);
@@ -130,7 +140,10 @@ namespace Code.Player.MCTS
             BackupNegamax(this, score);
         }
 
-        private static void BackupNegamax(SearchTreeNode<TPlayer, TState, TAction> leaf, double score)
+        private static void BackupNegamax(
+            SearchTreeNode<TPlayer, TState, TAction> leaf,
+            double score
+        )
         {
             var currentNode = leaf;
 

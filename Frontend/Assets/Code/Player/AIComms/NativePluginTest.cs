@@ -16,16 +16,16 @@ namespace Code.Player.AIComms
             {
                 var tcpClient = new TcpClient();
                 tcpClient.Connect(IPAddress.Loopback, server.Port);
-                var stream = tcpClient.GetStream();
+                NetworkStream stream = tcpClient.GetStream();
 
                 var encoding = new ASCIIEncoding();
-                var command = encoding.GetBytes("\"go\"");
+                byte[] command = encoding.GetBytes("\"go\"");
 
                 var buffer = new byte[1];
 
                 stream.Write(command);
                 stream.Read(buffer);
-                var response = buffer[0];
+                byte response = buffer[0];
 
                 text.text = response.ToString();
 

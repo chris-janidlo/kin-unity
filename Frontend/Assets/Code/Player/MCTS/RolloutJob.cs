@@ -20,15 +20,15 @@ namespace Code.Player.MCTS
 
         public void Execute()
         {
-            var currentState = StartState;
+            TState currentState = StartState;
 
-            var result = currentState.ValueForPlayer(ForPlayer);
+            double? result = currentState.ValueForPlayer(ForPlayer);
 
             while (result == null)
             {
                 ActionBuffer.Clear();
                 currentState.GetAvailableActions(ref ActionBuffer);
-                var action = currentState.DefaultPolicy(ActionBuffer);
+                TAction action = currentState.DefaultPolicy(ActionBuffer);
                 currentState = currentState.ApplyAction(action);
                 result = currentState.ValueForPlayer(ForPlayer);
             }

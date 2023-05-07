@@ -6,7 +6,7 @@ namespace Code.Player.SpiceUI
     [ExecuteAlways]
     public class SphericalGridGenerator : MonoBehaviour
     {
-        private static readonly List<Vector3> Adjacencies =
+        private static readonly List<Vector3> _ADJACENCIES =
             new()
             {
                 new Vector3(1, 1, 0),
@@ -23,22 +23,31 @@ namespace Code.Player.SpiceUI
                 new Vector3(0, -1, -1)
             };
 
-        [Min(0.01f)] [SerializeField] private float gridConstant,
-            scale,
-            gizmoRadius;
+        [Min(0.01f)]
+        [SerializeField]
+        private float GridConstant,
+            Scale,
+            GizmoRadius;
 
-        [Range(0, 1)] [SerializeField] private float virtRealLerp;
+        [Range(0, 1)]
+        [SerializeField]
+        private float VirtRealLerp;
 
-        [Range(0, 1)] [SerializeField] private float adjacencyLineMagnitude;
+        [Range(0, 1)]
+        [SerializeField]
+        private float AdjacencyLineMagnitude;
 
-        [SerializeField] private Vector3 rotation;
+        [SerializeField]
+        private Vector3 Rotation;
 
-        [SerializeField] private bool drawCubes;
+        [SerializeField]
+        private bool DrawCubes;
 
-        [SerializeField] private GameObject nodePrefab;
+        [SerializeField]
+        private GameObject NodePrefab;
 
-        private readonly List<(Vector3, Vector3)> _lines = new();
-        private readonly List<Vector3> _positions = new();
+        private readonly List<(Vector3, Vector3)> lines = new();
+        private readonly List<Vector3> positions = new();
 
         private void Start()
         {
@@ -47,19 +56,19 @@ namespace Code.Player.SpiceUI
 
             GeneratePositions();
 
-            foreach (var pos in _positions)
-                Instantiate(nodePrefab, pos, Quaternion.identity, transform);
+            foreach (Vector3 pos in positions)
+                Instantiate(NodePrefab, pos, Quaternion.identity, transform);
         }
 
         private void OnDrawGizmos()
         {
-            foreach (var pos in _positions)
-                if (drawCubes)
-                    Gizmos.DrawWireCube(pos, Vector3.one * gizmoRadius);
+            foreach (Vector3 pos in positions)
+                if (DrawCubes)
+                    Gizmos.DrawWireCube(pos, Vector3.one * GizmoRadius);
                 else
-                    Gizmos.DrawWireSphere(pos, gizmoRadius);
+                    Gizmos.DrawWireSphere(pos, GizmoRadius);
 
-            foreach (var pair in _lines)
+            foreach ((Vector3, Vector3) pair in lines)
                 Gizmos.DrawLine(pair.Item1, pair.Item2);
         }
 
@@ -70,36 +79,36 @@ namespace Code.Player.SpiceUI
 
         private void GeneratePositions()
         {
-            _positions.Clear();
-            _lines.Clear();
+            positions.Clear();
+            lines.Clear();
 
-            var rotation = Quaternion.Euler(this.rotation);
+            Quaternion rotation = Quaternion.Euler(Rotation);
 
-            var bound = Mathf.Floor(gridConstant);
-            for (var i = -bound; i <= bound; i++)
-            for (var j = -bound; j <= bound; j++)
-            for (var k = -bound; k <= bound; k++)
-            {
-                var virt = new Vector3(i, j, k);
-                var real = new Vector3(j + k, i + k, i + j);
+            float bound = Mathf.Floor(GridConstant);
+            for (float i = -bound; i <= bound; i++)
+                for (float j = -bound; j <= bound; j++)
+                    for (float k = -bound; k <= bound; k++)
+                    {
+                        var virt = new Vector3(i, j, k);
+                        var real = new Vector3(j + k, i + k, i + j);
 
-                if (virt.sqrMagnitude >= gridConstant * gridConstant)
-                    continue;
+                        if (virt.sqrMagnitude >= GridConstant * GridConstant)
+                            continue;
 
-                var center = scale * Vector3.LerpUnclamped(virt, real, virtRealLerp);
-                center = rotation * center;
+                        Vector3 center = Scale * Vector3.LerpUnclamped(virt, real, VirtRealLerp);
+                        center = rotation * center;
 
-                _positions.Add(center);
+                        positions.Add(center);
 
-                foreach (var adjacency in Adjacencies)
-                {
-                    var direction = rotation * adjacency;
-                    var end = center + direction * adjacencyLineMagnitude;
-                    _lines.Add((center, end));
-                }
-            }
+                        foreach (Vector3 adjacency in _ADJACENCIES)
+                        {
+                            Vector3 direction = rotation * adjacency;
+                            Vector3 end = center + direction * AdjacencyLineMagnitude;
+                            lines.Add((center, end));
+                        }
+                    }
 
-            Debug.Log(_positions.Count.ToString());
+            Debug.Log(positions.Count.ToString());
         }
     }
 }

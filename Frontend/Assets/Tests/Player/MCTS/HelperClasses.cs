@@ -53,18 +53,15 @@ namespace Tests.Player.MCTS
 
         public TestPlayer NextToPlay()
         {
-            return Value % 2 == 0
-                ? TestPlayer.Black
-                : TestPlayer.White;
+            return Value % 2 == 0 ? TestPlayer.Black : TestPlayer.White;
         }
 
         public double? ValueForPlayer(TestPlayer player)
         {
-            if (Value < 10) return null;
+            if (Value < 10)
+                return null;
 
-            return player == NextToPlay()
-                ? Value
-                : -Value;
+            return player == NextToPlay() ? Value : -Value;
         }
     }
 }

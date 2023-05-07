@@ -1,4 +1,5 @@
 using DG.Tweening;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,19 +7,24 @@ namespace Code.Player.SpiceUI
 {
     public class CameraController : MonoBehaviour
     {
-        [SerializeField] private float panSensitivity,
-            rotateSensitivity,
-            zoomSensitivity;
+        [SerializeField]
+        private float PanSensitivity,
+            RotateSensitivity,
+            ZoomSensitivity;
 
-        [SerializeField] private AnimationCurve zoomPositionCurve,
-            zoomFovCurve;
+        [SerializeField]
+        private AnimationCurve ZoomPositionCurve,
+            ZoomFovCurve;
 
-        [SerializeField] private float zoomSmoothTime;
+        [SerializeField]
+        private float ZoomSmoothTime;
 
-        [SerializeField] private Transform rigTransform,
-            cameraTransform;
+        [SerializeField]
+        private Transform RigTransform,
+            CameraTransform;
 
-        [SerializeField] private new Camera camera;
+        [SerializeField]
+        private Camera Camera;
 
         private Vector2 desiredRotation;
 
@@ -30,21 +36,23 @@ namespace Code.Player.SpiceUI
         private void Start()
         {
             desiredZoomLevel = currentZoomLevel = 0.5f;
-            desiredRotation = rigTransform.localEulerAngles;
+            desiredRotation = RigTransform.localEulerAngles;
             ApplyZoomLevel();
         }
 
+        [UsedImplicitly]
         public void OnCameraPan(InputAction.CallbackContext context)
         {
             if (!context.performed)
                 return;
 
             var delta = context.ReadValue<Vector2>();
-            rigTransform.localPosition -= rigTransform.rotation * delta * panSensitivity;
+            RigTransform.localPosition -= RigTransform.rotation * delta * PanSensitivity;
 
             // TODO: clamp pan https://dynalist.io/d/kxguqztlKqFtRz6IeZQXFajg#z=eDwWMLTBMBht64SeDlzGgd58
         }
 
+        [UsedImplicitly]
         public void OnCameraRotate(InputAction.CallbackContext context)
         {
             if (!context.performed)
@@ -53,14 +61,15 @@ namespace Code.Player.SpiceUI
             var delta = context.ReadValue<Vector2>();
 
             desiredRotation += new Vector2(
-                -delta.y * rotateSensitivity,
-                delta.x * rotateSensitivity
+                -delta.y * RotateSensitivity,
+                delta.x * RotateSensitivity
             );
             desiredRotation.x = Mathf.Clamp(desiredRotation.x, -90, 90);
 
-            rigTransform.localEulerAngles = desiredRotation;
+            RigTransform.localEulerAngles = desiredRotation;
         }
 
+        [UsedImplicitly]
         public void OnCameraZoom(InputAction.CallbackContext context)
         {
             if (!context.performed)
@@ -73,7 +82,7 @@ namespace Code.Player.SpiceUI
                 // uses +-120 and macOS uses a value in [-1, 1]), just read the sign
                 delta = Mathf.Sign(delta);
 
-            desiredZoomLevel = Mathf.Clamp01(desiredZoomLevel + delta * zoomSensitivity);
+            desiredZoomLevel = Mathf.Clamp01(desiredZoomLevel + delta * ZoomSensitivity);
 
             if (zoomTween != null)
                 zoomTween.Kill();
@@ -83,28 +92,29 @@ namespace Code.Player.SpiceUI
                     () => currentZoomLevel,
                     x => currentZoomLevel = x,
                     desiredZoomLevel,
-                    zoomSmoothTime
+                    ZoomSmoothTime
                 )
                 .SetEase(Ease.Linear)
                 .OnKill(() => zoomTween = null)
                 .OnUpdate(() => ApplyZoomLevel());
         }
 
+        [UsedImplicitly]
         public void OnCameraReset(InputAction.CallbackContext context)
         {
             if (!context.performed)
                 return;
 
-            rigTransform.localPosition = Vector3.zero;
+            RigTransform.localPosition = Vector3.zero;
         }
 
         private void ApplyZoomLevel()
         {
-            var z = zoomPositionCurve.Evaluate(currentZoomLevel);
-            cameraTransform.localPosition = Vector3.forward * z;
+            float z = ZoomPositionCurve.Evaluate(currentZoomLevel);
+            CameraTransform.localPosition = Vector3.forward * z;
 
-            var fov = zoomFovCurve.Evaluate(currentZoomLevel);
-            camera.fieldOfView = fov;
+            float fov = ZoomFovCurve.Evaluate(currentZoomLevel);
+            Camera.fieldOfView = fov;
         }
     }
 }

@@ -14,11 +14,12 @@ namespace Code.Player.MCTS
         private SearchTreeNode<TPlayer, TState, TAction> tree;
 
         public Searcher(TState rootState, SearchParameters parameters)
-            : this(new SearchTreeNode<TPlayer, TState, TAction>(rootState), parameters)
-        {
-        }
+            : this(new SearchTreeNode<TPlayer, TState, TAction>(rootState), parameters) { }
 
-        internal Searcher(SearchTreeNode<TPlayer, TState, TAction> startTree, SearchParameters parameters)
+        internal Searcher(
+            SearchTreeNode<TPlayer, TState, TAction> startTree,
+            SearchParameters parameters
+        )
         {
             tree = startTree;
             defaultParameters = parameters;
@@ -26,17 +27,20 @@ namespace Code.Player.MCTS
 
         public TAction Search(SearchParameters? parameters = null)
         {
-            var searchParameters = parameters ?? defaultParameters;
+            SearchParameters searchParameters = parameters ?? defaultParameters;
 
-            using var actionBuffer = new NativeList<TAction>(tree.GameState.ActionArrayMaxSize, Allocator.Persistent);
+            using var actionBuffer = new NativeList<TAction>(
+                tree.GameState.ActionArrayMaxSize,
+                Allocator.Persistent
+            );
             using var rolloutResults = new NativeArray<double>(1, Allocator.Persistent);
 
-            var rootPlayer = tree.GameState.NextToPlay();
+            TPlayer rootPlayer = tree.GameState.NextToPlay();
 
             for (var _ = 0; _ < searchParameters.Iterations; _++)
             {
                 var leaf = tree.FindSearchCandidate(searchParameters.ExplorationFactor);
-                var score = Rollout(leaf.GameState, rootPlayer, actionBuffer, rolloutResults);
+                double score = Rollout(leaf.GameState, rootPlayer, actionBuffer, rolloutResults);
                 if (leaf is ChildSearchTreeNode<TPlayer, TState, TAction> child)
                     child.Backup(score);
             }
@@ -49,15 +53,19 @@ namespace Code.Player.MCTS
             var newRoot = tree.ChildWithAction(action);
             if (newRoot == null)
             {
-                var newState = tree.GameState.ApplyAction(action);
+                TState newState = tree.GameState.ApplyAction(action);
                 newRoot = new SearchTreeNode<TPlayer, TState, TAction>(newState);
             }
 
             tree = newRoot;
         }
 
-        private static double Rollout(TState fromState, TPlayer forPlayer, NativeList<TAction> actionBuffer,
-            NativeArray<double> resultContainer)
+        private static double Rollout(
+            TState fromState,
+            TPlayer forPlayer,
+            NativeList<TAction> actionBuffer,
+            NativeArray<double> resultContainer
+        )
         {
             var jobData = new RolloutJob<TPlayer, TState, TAction>
             {
@@ -67,7 +75,7 @@ namespace Code.Player.MCTS
                 Result = resultContainer
             };
 
-            var jobHandle = jobData.Schedule();
+            JobHandle jobHandle = jobData.Schedule();
             jobHandle.Complete();
 
             return resultContainer[0];

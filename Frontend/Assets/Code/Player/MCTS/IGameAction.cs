@@ -1,6 +1,4 @@
 namespace Code.Player.MCTS
 {
-    public interface IGameAction
-    {
-    }
+    public interface IGameAction { }
 }

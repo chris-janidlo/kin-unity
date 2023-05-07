@@ -32,11 +32,11 @@ namespace Kin.Editor
         {
             var filename = "ai_server";
 
-            var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
-            var buildDirectory = Directory.GetParent(pathToBuiltProject)!.FullName;
+            string projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
+            string buildDirectory = Directory.GetParent(pathToBuiltProject)!.FullName;
 
-            var sourcePath = Path.Combine(projectDirectory, filename);
-            var destPath = Path.Combine(buildDirectory, filename);
+            string sourcePath = Path.Combine(projectDirectory, filename);
+            string destPath = Path.Combine(buildDirectory, filename);
 
             Debug.Log($"Copying {sourcePath} to {destPath}");
             File.Copy(sourcePath, destPath, true);
@@ -46,9 +46,9 @@ namespace Kin.Editor
         {
             var filename = "ai_server";
 
-            var projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
-            var sourcePath = Path.Combine(projectDirectory, filename);
-            var destPath = Path.Combine(pathToBuiltProject, filename);
+            string projectDirectory = Directory.GetParent(Application.dataPath)!.FullName;
+            string sourcePath = Path.Combine(projectDirectory, filename);
+            string destPath = Path.Combine(pathToBuiltProject, filename);
 
             Debug.Log($"Copying {sourcePath} to {destPath}");
             File.Copy(sourcePath, destPath, true);

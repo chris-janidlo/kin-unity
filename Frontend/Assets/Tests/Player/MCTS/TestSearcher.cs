@@ -19,8 +19,7 @@ namespace Tests.Player.MCTS
             return new Searcher<TestPlayer, TestState, TestAction>(startState, parameters);
         }
 
-        [Test]
-        [Timeout(1000)]
+        [Test, Timeout(1000)]
         public void SearchTerminates()
         {
             var searcher = BasicSearcher();
