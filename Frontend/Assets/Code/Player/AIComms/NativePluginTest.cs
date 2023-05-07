@@ -1,18 +1,16 @@
-using System.Collections;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using TMPro;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace Kin.Player.AIComms
+namespace Code.Player.AIComms
 {
     public class NativePluginTest : MonoBehaviour
     {
         public TextMeshProUGUI text;
 
-        void Start()
+        private void Start()
         {
             using (var server = new AiServer())
             {

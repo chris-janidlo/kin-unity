@@ -1,42 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using DG.Tweening;
 
-namespace Kin.Player.SpiceUI
+namespace Code.Player.SpiceUI
 {
     public class CameraController : MonoBehaviour
     {
-        [SerializeField]
-        float panSensitivity,
+        [SerializeField] private float panSensitivity,
             rotateSensitivity,
             zoomSensitivity;
 
-        [SerializeField]
-        AnimationCurve zoomPositionCurve,
+        [SerializeField] private AnimationCurve zoomPositionCurve,
             zoomFovCurve;
 
-        [SerializeField]
-        float zoomSmoothTime;
+        [SerializeField] private float zoomSmoothTime;
 
-        [SerializeField]
-        Transform rigTransform,
+        [SerializeField] private Transform rigTransform,
             cameraTransform;
 
-        [SerializeField]
-        new Camera camera;
+        [SerializeField] private new Camera camera;
 
-        Vector2 desiredRotation;
-        float desiredZoomLevel,
+        private Vector2 desiredRotation;
+
+        private float desiredZoomLevel,
             currentZoomLevel;
 
-        Tween zoomTween;
+        private Tween zoomTween;
 
-        void Start()
+        private void Start()
         {
             desiredZoomLevel = currentZoomLevel = 0.5f;
-            desiredRotation = (Vector2)rigTransform.localEulerAngles;
+            desiredRotation = rigTransform.localEulerAngles;
             ApplyZoomLevel();
         }
 
@@ -75,11 +69,9 @@ namespace Kin.Player.SpiceUI
             var delta = context.ReadValue<float>();
 
             if (context.control.path.Contains("Mouse"))
-            {
                 // because different platforms use different scroll-wheel deltas (eg Windows
                 // uses +-120 and macOS uses a value in [-1, 1]), just read the sign
                 delta = Mathf.Sign(delta);
-            }
 
             desiredZoomLevel = Mathf.Clamp01(desiredZoomLevel + delta * zoomSensitivity);
 
@@ -106,7 +98,7 @@ namespace Kin.Player.SpiceUI
             rigTransform.localPosition = Vector3.zero;
         }
 
-        void ApplyZoomLevel()
+        private void ApplyZoomLevel()
         {
             var z = zoomPositionCurve.Evaluate(currentZoomLevel);
             cameraTransform.localPosition = Vector3.forward * z;
