@@ -5,7 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "MCTS",
-        "Unity.Collections"
+        "Unity.Collections",
+        "crass.spellbook-unity.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
