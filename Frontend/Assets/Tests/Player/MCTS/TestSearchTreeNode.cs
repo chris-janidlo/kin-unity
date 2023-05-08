@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Code.Player.MCTS;
 using NUnit.Framework;
 using UnityEngine;
@@ -63,6 +64,50 @@ namespace Tests.Player.MCTS
             Assert.AreEqual(0, nodeB.Score);
             Assert.AreEqual(0, nodeC.Score);
             Assert.AreEqual(0, nodeD.Score);
+        }
+
+        [Test]
+        public void ExpandAddsNewNodeAsChildOfOriginal()
+        {
+            var parent = RandomRoot();
+            var expanded = parent.Expand();
+
+            Assert.That(parent.Children, Has.Member(expanded));
+            Assert.That(expanded.Parent, Is.EqualTo(parent));
+        }
+
+        [Test]
+        public void ExpandFindsMoveToExpandOn()
+        {
+            var parent = RandomRoot();
+            var node = RandomChild(parent);
+
+            var expanded = node.Expand();
+
+            Assert.That(expanded, Is.Not.EqualTo(node));
+        }
+
+        [Test]
+        public void ExpandConsumesUnvisitedActions()
+        {
+            var node = RandomRoot();
+
+            var originalUnvisitedActions = new HashSet<TestAction>(node.UnvisitedActions);
+            int lastCount = node.UnvisitedActions.Count;
+
+            while (lastCount > 0)
+            {
+                var expanded = node.Expand();
+
+                int newCount = node.UnvisitedActions.Count;
+                Assert.That(newCount, Is.LessThan(lastCount));
+
+                TestAction newAction = expanded.IncomingAction;
+                Assert.That(originalUnvisitedActions, Has.Member(newAction));
+                Assert.That(node.UnvisitedActions, Has.No.Member(newAction));
+
+                lastCount = newCount;
+            }
         }
     }
 }
