@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Code.Player.MCTS;
 using NUnit.Framework;
-using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Tests.Player.MCTS
 {
@@ -224,6 +225,31 @@ namespace Tests.Player.MCTS
 
             Assert.That(parent.Children, Has.Member(child));
             Assert.That(child.Parent, Is.EqualTo(parent));
+        }
+
+        [Test]
+        public void DetachDoesNotLeak()
+        {
+            // https://stackoverflow.com/a/579001/5931898
+
+            ConcreteChild child = null;
+            WeakReference reference = null;
+            new Action(() =>
+            {
+                var parent = Helper.RandomRoot();
+                child = Helper.RandomChild(parent);
+
+                child.Detach();
+
+                reference = new WeakReference(parent, true);
+            })();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            Assert.That(child, Is.Not.Null);
+            Assert.That(reference, Is.Not.Null);
+            Assert.That(reference.Target, Is.Null);
         }
     }
 }

@@ -142,6 +142,7 @@ namespace Code.Player.MCTS
 
         public void Detach()
         {
+            Parent.Children.Remove(this);
             Parent = null;
         }
 

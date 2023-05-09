@@ -10,51 +10,55 @@ namespace Code.Player.MCTS
         where TState : struct, IGameState<TPlayer, TState, TAction>
         where TAction : unmanaged, IGameAction
     {
-        private readonly SearchParameters defaultParameters;
-        private SearchTreeNode<TPlayer, TState, TAction> tree;
+        internal readonly SearchParameters DefaultParameters;
+        internal SearchTreeNode<TPlayer, TState, TAction> Tree;
 
         public Searcher(TState rootState, SearchParameters defaultParameters)
         {
-            tree = new SearchTreeNode<TPlayer, TState, TAction>(rootState);
-            this.defaultParameters = defaultParameters;
+            Tree = new SearchTreeNode<TPlayer, TState, TAction>(rootState);
+            DefaultParameters = defaultParameters;
         }
 
         public TAction Search(SearchParameters? parameters = null)
         {
-            SearchParameters searchParameters = parameters ?? defaultParameters;
+            SearchParameters searchParameters = parameters ?? DefaultParameters;
 
             using var actionBuffer = new NativeList<TAction>(
-                tree.GameState.ActionArrayMaxSize,
+                Tree.GameState.ActionArrayMaxSize,
                 Allocator.Persistent
             );
             using var rolloutResults = new NativeArray<double>(1, Allocator.Persistent);
 
-            TPlayer rootPlayer = tree.GameState.NextToPlay();
+            TPlayer rootPlayer = Tree.GameState.NextToPlay();
 
             for (var _ = 0; _ < searchParameters.Iterations; _++)
             {
-                var leaf = tree.FindSearchCandidate(searchParameters.ExplorationFactor);
+                var leaf = Tree.FindSearchCandidate(searchParameters.ExplorationFactor);
                 double score = Rollout(leaf.GameState, rootPlayer, actionBuffer, rolloutResults);
                 if (leaf is ChildSearchTreeNode<TPlayer, TState, TAction> child)
                     child.Backup(score);
             }
 
-            return tree.BestChild(0.0).IncomingAction;
+            var choice = Tree.BestChild(0.0);
+            choice.Detach();
+            Tree = choice;
+
+            return choice.IncomingAction;
         }
 
         public void ApplyAction(TAction action)
         {
-            var childWithAction = tree.ChildWithAction(action);
+            var childWithAction = Tree.ChildWithAction(action);
 
             if (childWithAction == null)
             {
-                TState newState = tree.GameState.ApplyAction(action);
-                tree = new SearchTreeNode<TPlayer, TState, TAction>(newState);
+                TState newState = Tree.GameState.ApplyAction(action);
+                Tree = new SearchTreeNode<TPlayer, TState, TAction>(newState);
             }
             else
             {
                 childWithAction.Detach();
-                tree = childWithAction;
+                Tree = childWithAction;
             }
         }
 
