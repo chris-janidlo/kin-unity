@@ -13,16 +13,10 @@ namespace Code.Player.MCTS
         private readonly SearchParameters defaultParameters;
         private SearchTreeNode<TPlayer, TState, TAction> tree;
 
-        public Searcher(TState rootState, SearchParameters parameters)
-            : this(new SearchTreeNode<TPlayer, TState, TAction>(rootState), parameters) { }
-
-        internal Searcher(
-            SearchTreeNode<TPlayer, TState, TAction> startTree,
-            SearchParameters parameters
-        )
+        public Searcher(TState rootState, SearchParameters defaultParameters)
         {
-            tree = startTree;
-            defaultParameters = parameters;
+            tree = new SearchTreeNode<TPlayer, TState, TAction>(rootState);
+            this.defaultParameters = defaultParameters;
         }
 
         public TAction Search(SearchParameters? parameters = null)
