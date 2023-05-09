@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Code.Player.MCTS;
 using NUnit.Framework;
+using Unity.Collections;
 
 namespace Tests.Player.MCTS
 {
@@ -24,6 +26,39 @@ namespace Tests.Player.MCTS
         {
             var searcher = BasicSearcher();
             searcher.Search();
+        }
+
+        [Test, Timeout(1000)]
+        public void SearchReturnsLegalMove()
+        {
+            var searcher = BasicSearcher();
+            TestAction move = searcher.Search();
+
+            var rootState = new TestState(0);
+
+            var actionBuffer = new NativeList<TestAction>(
+                rootState.ActionArrayMaxSize,
+                Allocator.Temp
+            );
+            using (actionBuffer)
+            {
+                rootState.GetAvailableActions(ref actionBuffer);
+
+                var found = false;
+
+                // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+                foreach (TestAction action in actionBuffer)
+                    if (action.Addend == move.Addend)
+                    {
+                        found = true;
+                        break;
+                    }
+
+                Assert.True(
+                    found,
+                    $"unable to find {move.Addend} in {rootState.Value}'s legal moves"
+                );
+            }
         }
     }
 }
