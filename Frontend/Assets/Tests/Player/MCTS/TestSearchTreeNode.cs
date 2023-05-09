@@ -115,5 +115,20 @@ namespace Tests.Player.MCTS
             Assert.That(nodeC.Score, Is.EqualTo(0));
             Assert.That(nodeD.Score, Is.EqualTo(0));
         }
+
+        [Test]
+        public void ChildConstructorProperlyHooksUpToParent()
+        {
+            var parent = Helper.RandomRoot();
+
+            var child = new ChildSearchTreeNode<TestPlayer, TestState, TestAction>(
+                new TestState(10),
+                parent,
+                new TestAction(10)
+            );
+
+            Assert.That(parent.Children, Has.Member(child));
+            Assert.That(child.Parent, Is.EqualTo(parent));
+        }
     }
 }
