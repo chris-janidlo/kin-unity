@@ -88,7 +88,7 @@ namespace Code.Player.MCTS
             return new ChildSearchTreeNode<TPlayer, TState, TAction>(newState, this, action);
         }
 
-        public SearchTreeNode<TPlayer, TState, TAction> ChildWithAction(TAction action)
+        public ChildSearchTreeNode<TPlayer, TState, TAction> ChildWithAction(TAction action)
         {
             return Children.FirstOrDefault(c => c.IncomingAction.Equals(action));
         }
@@ -138,6 +138,11 @@ namespace Code.Player.MCTS
             // TODO: handle non-two-player case?
 
             BackupNegamax(this, score);
+        }
+
+        public void Detach()
+        {
+            Parent = null;
         }
 
         private static void BackupNegamax(

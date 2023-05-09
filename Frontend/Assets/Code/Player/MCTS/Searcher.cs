@@ -50,14 +50,18 @@ namespace Code.Player.MCTS
 
         public void ApplyAction(TAction action)
         {
-            var newRoot = tree.ChildWithAction(action);
-            if (newRoot == null)
+            var childWithAction = tree.ChildWithAction(action);
+
+            if (childWithAction == null)
             {
                 TState newState = tree.GameState.ApplyAction(action);
-                newRoot = new SearchTreeNode<TPlayer, TState, TAction>(newState);
+                tree = new SearchTreeNode<TPlayer, TState, TAction>(newState);
             }
-
-            tree = newRoot;
+            else
+            {
+                childWithAction.Detach();
+                tree = childWithAction;
+            }
         }
 
         private static double Rollout(
