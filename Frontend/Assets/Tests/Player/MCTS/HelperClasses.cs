@@ -1,3 +1,4 @@
+using System;
 using Code.Player.MCTS;
 using Tests.Player.MCTS;
 using Unity.Collections;
@@ -7,6 +8,11 @@ using Unity.Jobs;
 
 namespace Tests.Player.MCTS
 {
+    public static class TestMctsConstants
+    {
+        public static readonly double EXPLORATION_FACTOR = 1.0 / Math.Sqrt(2.0);
+    }
+
     public enum TestPlayer
     {
         Black,

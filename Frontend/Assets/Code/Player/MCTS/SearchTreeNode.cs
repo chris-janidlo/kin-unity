@@ -128,7 +128,7 @@ namespace Code.Player.MCTS
             : base(state)
         {
             Parent = parent;
-            parent.Children.Add(this);
+            parent?.Children.Add(this);
 
             IncomingAction = incomingAction;
         }

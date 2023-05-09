@@ -10,7 +10,7 @@ namespace Tests.Player.MCTS
         {
             var parameters = new SearchParameters
             {
-                ExplorationFactor = 1.0 / Math.Sqrt(2.0),
+                ExplorationFactor = TestMctsConstants.EXPLORATION_FACTOR,
                 Iterations = 20
             };
 
