@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Code.Player.MCTS;
 using NUnit.Framework;
 using Random = UnityEngine.Random;
@@ -213,13 +214,15 @@ namespace Tests.Player.MCTS
             var node3 = Helper.RandomChild(node2);
             var node4 = Helper.RandomChild(node3);
 
+            var originalScores = new[] { node1, node2, node3, node4 }.Select(n => n.Score).ToList();
+
             float score = Random.value;
             node4.Backup(score);
 
-            Assert.That(node4.Score, Is.EqualTo(score));
-            Assert.That(node3.Score, Is.EqualTo(-score));
-            Assert.That(node2.Score, Is.EqualTo(score));
-            Assert.That(node1.Score, Is.EqualTo(-score));
+            Assert.That(node4.Score, Is.EqualTo(originalScores[3] + score));
+            Assert.That(node3.Score, Is.EqualTo(originalScores[2] - score));
+            Assert.That(node2.Score, Is.EqualTo(originalScores[1] + score));
+            Assert.That(node1.Score, Is.EqualTo(originalScores[0] - score));
         }
 
         [Test]
@@ -236,14 +239,18 @@ namespace Tests.Player.MCTS
             var nodeC = Helper.RandomChild(node3);
             var nodeD = Helper.RandomChild(node4);
 
+            var originalScores = new[] { nodeA, nodeA1, nodeB, nodeC, nodeD }
+                .Select(n => n.Score)
+                .ToList();
+
             float score = Random.value;
             node4.Backup(score);
 
-            Assert.That(nodeA.Score, Is.EqualTo(0));
-            Assert.That(nodeA1.Score, Is.EqualTo(0));
-            Assert.That(nodeB.Score, Is.EqualTo(0));
-            Assert.That(nodeC.Score, Is.EqualTo(0));
-            Assert.That(nodeD.Score, Is.EqualTo(0));
+            Assert.That(nodeA.Score, Is.EqualTo(originalScores[0]));
+            Assert.That(nodeA1.Score, Is.EqualTo(originalScores[1]));
+            Assert.That(nodeB.Score, Is.EqualTo(originalScores[2]));
+            Assert.That(nodeC.Score, Is.EqualTo(originalScores[3]));
+            Assert.That(nodeD.Score, Is.EqualTo(originalScores[4]));
         }
 
         [Test]
