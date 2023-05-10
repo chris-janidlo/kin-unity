@@ -167,6 +167,40 @@ namespace Tests.Player.MCTS
             Assert.That(candidate.UnvisitedActions, Has.Count.EqualTo(1));
             Assert.That(candidate.UnvisitedActions, Has.Member(new TestAction(0)));
         }
+
+        [Test]
+        public void BestChildMaximizesUcb1()
+        {
+            // arbitrary values chosen so that child a has a higher UCB1 when
+            // effective_exploration_factor is set to 0, and child b is higher when
+            // effective_exploration_factor is set to 1
+
+            var parent = Helper.RandomRoot();
+            parent.Score = -1.0;
+            parent.Visits = 3;
+
+            var child1State = new TestState(Random.Range(1, 5));
+            var child1Action = new TestAction(child1State.Value - parent.GameState.Value);
+            var child1 = new ConcreteChild(child1State, parent, child1Action)
+            {
+                Score = 5.0,
+                Visits = 50
+            };
+
+            var child2State = new TestState(Random.Range(6, 10));
+            var child2Action = new TestAction(child2State.Value - parent.GameState.Value);
+            var child2 = new ConcreteChild(child2State, parent, child2Action)
+            {
+                Score = 1.0,
+                Visits = 20
+            };
+
+            var bestChildC0 = parent.BestChild(0.0);
+            var bestChildC1 = parent.BestChild(1.0);
+
+            Assert.That(bestChildC0, Is.SameAs(child1));
+            Assert.That(bestChildC1, Is.SameAs(child2));
+        }
     }
 
     public class TestChildSearchTreeNode
