@@ -82,5 +82,42 @@ namespace Tests.Player.MCTS
             else
                 Assert.Fail("expected detached child");
         }
+
+        [Test]
+        public void ApplyActionCreatesNewTree()
+        {
+            var searcher = BasicSearcher();
+
+            var root = searcher.Tree;
+            Helper.RandomChild(root);
+            Helper.RandomChild(root);
+            Helper.RandomChild(root);
+
+            var actionToApply = new TestAction(int.MaxValue);
+
+            searcher.ApplyAction(actionToApply);
+
+            var newRoot = searcher.Tree;
+            Assert.That(newRoot, Is.Not.EqualTo(root));
+            Assert.That(newRoot.Children, Is.Empty);
+        }
+
+        [Test]
+        public void ApplyActionDetachesExistingBranch()
+        {
+            var searcher = BasicSearcher();
+
+            var root = searcher.Tree;
+            var child = Helper.RandomChild(root);
+            var child2 = Helper.RandomChild(root);
+            if (child2.IncomingAction.Addend == child.IncomingAction.Addend)
+                child2.IncomingAction = new TestAction(child2.IncomingAction.Addend * 2);
+
+            searcher.ApplyAction(child.IncomingAction);
+
+            Assert.That(searcher.Tree, Is.EqualTo(child));
+            Assert.That(child.Parent, Is.Null);
+            Assert.That(root.Children, Has.No.Member(child));
+        }
     }
 }
