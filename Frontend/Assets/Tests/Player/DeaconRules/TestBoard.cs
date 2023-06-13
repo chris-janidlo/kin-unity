@@ -155,222 +155,208 @@ namespace Tests.Player.DeaconRules
         private static IEnumerable<TestCaseData> ApplyActionComponentTestData()
         {
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     S _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                "),
-                new ActionComponent(
-                    Vector2Int.zero,
-                    Vector2Int.one,
-                    Form.Engineer
+                "
                 ),
-                new Board(@"
+                new ActionComponent(Vector2Int.zero, Vector2Int.one, Form.Engineer),
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ E _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                ")
+                "
+                )
             ).SetName("Basic Scientist Movement");
 
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     S _ r _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                "),
-                new ActionComponent(
-                    Vector2Int.zero,
-                    Vector2Int.one,
-                    Form.Engineer
+                "
                 ),
-                new Board(@"
+                new ActionComponent(Vector2Int.zero, Vector2Int.one, Form.Engineer),
+                new Board(
+                    @"
                     _ _ r _ _
                     _ E _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                ")
+                "
+                )
             ).SetName("Basic Scientist Movement With Enemy On Board");
 
-
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ E _ _
                     _ _ _ _ _
                     s _ _ _ _
-                "),
-                new ActionComponent(
-                    new(0, 4),
-                    new(2, 2),
-                    Form.Scientist
+                "
                 ),
-                new Board(@"
+                new ActionComponent(new(0, 4), new(2, 2), Form.Scientist),
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ s _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                ")
+                "
+                )
             ).SetName("Capture");
 
-
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ c _ _
                     _ _ _ _ _
                     _ _ P _ _
-                "),
-                new ActionComponent(
-                    new(2, 4),
-                    new(2, 2),
-                    Form.Engineer
+                "
                 ),
-                new Board(@"
+                new ActionComponent(new(2, 4), new(2, 2), Form.Engineer),
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ E _ _
                     _ _ _ _ _
                     _ _ c _ _
-                ")
+                "
+                )
             ).SetName("Swap");
         }
 
         [TestCaseSource(nameof(ApplyActionComponentTestData))]
-        public void ApplyActionComponentWorks(Board start, ActionComponent actionComponent, Board expected)
+        public void ApplyActionComponentWorks(
+            Board start,
+            ActionComponent actionComponent,
+            Board expected
+        )
         {
             var array = (byte[])start.pieces_packed.Clone();
             Board.ApplyActionComponent(array, actionComponent);
             var actual = new Board(array);
-            
+
             Assert.That(actual, Is.EqualTo(expected));
         }
 
         private static IEnumerable<TestCaseData> ApplyGameActionTestData()
         {
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ S _ _ _
                     S _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                "),
-                new GameAction(
-                    new ActionComponent(
-                        new(0, 1),
-                        new(1, 1),
-                        Form.Engineer
-                    ),
-                    new ActionComponent(
-                        new(1, 0),
-                        new(0, 0),
-                        Form.Priest
-                    )
+                "
                 ),
-                new Board(@"
+                new GameAction(
+                    new ActionComponent(new(0, 1), new(1, 1), Form.Engineer),
+                    new ActionComponent(new(1, 0), new(0, 0), Form.Priest)
+                ),
+                new Board(
+                    @"
                     P _ _ _ _
                     _ E _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
-                ")
+                "
+                )
             ).SetName("Basic Double Movement");
 
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ E _
                     _ _ _ _ _
                     _ I _ _ c
                     _ _ _ c _
-                "),
-                new GameAction(
-                    new ActionComponent(
-                        new(3, 1),
-                        new(2, 0),
-                        Form.Pilot
-                    ),
-                    new ActionComponent(
-                        new(1, 3),
-                        new(0, 2),
-                        Form.Captain
-                    )
+                "
                 ),
-                new Board(@"
+                new GameAction(
+                    new ActionComponent(new(3, 1), new(2, 0), Form.Pilot),
+                    new ActionComponent(new(1, 3), new(0, 2), Form.Captain)
+                ),
+                new Board(
+                    @"
                     _ _ I _ _
                     _ _ _ _ _
                     C _ _ _ _
                     _ _ _ _ c
                     _ _ _ c _
-                ")
+                "
+                )
             ).SetName("Double Movement With Enemies On Board");
 
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ r _
                     _ _ _ _ _
                     _ i _ S _
                     _ _ C _ _
-                "),
-                new GameAction(
-                    new ActionComponent(
-                        new(3, 1),
-                        new(3, 3),
-                        Form.Priest
-                    ),
-                    new ActionComponent(
-                        new(1, 3),
-                        new(2, 4),
-                        Form.Priest
-                    )
+                "
                 ),
-                new Board(@"
+                new GameAction(
+                    new ActionComponent(new(3, 1), new(3, 3), Form.Priest),
+                    new ActionComponent(new(1, 3), new(2, 4), Form.Priest)
+                ),
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ _ _
                     _ _ _ p _
                     _ _ p _ _
-                ")
+                "
+                )
             ).SetName("Double Capture");
 
             yield return new TestCaseData(
-                new Board(@"
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ e _ r _
                     _ _ _ _ _
                     _ _ _ S _
                     _ _ _ _ _
-                "),
-                new GameAction(
-                    new ActionComponent(
-                        new(1, 1),
-                        new(3, 3),
-                        Form.Pilot
-                    ),
-                    new ActionComponent(
-                        new(3, 1),
-                        new(1, 1),
-                        Form.Engineer
-                    )
+                "
                 ),
-                new Board(@"
+                new GameAction(
+                    new ActionComponent(new(1, 1), new(3, 3), Form.Pilot),
+                    new ActionComponent(new(3, 1), new(1, 1), Form.Engineer)
+                ),
+                new Board(
+                    @"
                     _ _ _ _ _
                     _ e _ _ _
                     _ _ _ _ _
                     _ _ _ i _
                     _ _ _ _ _
-                ")
+                "
+                )
             ).SetName("Basic Double Movement");
         }
 
@@ -378,6 +364,110 @@ namespace Tests.Player.DeaconRules
         public void ApplyGameActionWorks(Board start, GameAction action, Board expected)
         {
             var actual = start.ApplyAction(action);
+
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [TestCase(
+            @"
+                _ S _ _ _
+                S _ _ _ _
+                _ _ _ _ _
+                _ _ _ _ s
+                _ _ _ s _
+            ",
+            Player.Blue,
+            null,
+            TestName = "Initial For Blue"
+        )]
+        [TestCase(
+            @"
+                _ S _ _ _
+                S _ _ _ _
+                _ _ _ _ _
+                _ _ _ _ s
+                _ _ _ s _
+            ",
+            Player.Red,
+            null,
+            TestName = "Initial For Red"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ P _ _
+                _ _ i _ _
+                E _ _ _ _
+                _ r _ _ _
+            ",
+            Player.Blue,
+            null,
+            TestName = "Midgame For Blue"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ P _ _
+                _ _ i _ _
+                E _ _ _ _
+                _ r _ _ _
+            ",
+            Player.Red,
+            null,
+            TestName = "Midgame For Blue"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ P _ _
+                _ _ _ _ _
+                E _ _ _ _
+                _ _ _ _ _
+            ",
+            Player.Blue,
+            1,
+            TestName = "Blue Win, Blue Perspective"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ P _ _
+                _ _ _ _ _
+                E _ _ _ _
+                _ _ _ _ _
+            ",
+            Player.Red,
+            -1,
+            TestName = "Blue Win, Red Perspective"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ p _ _
+                _ _ _ _ _
+                e _ _ _ _
+                _ _ _ _ _
+            ",
+            Player.Blue,
+            -1,
+            TestName = "Red Win, Blue Perspective"
+        )]
+        [TestCase(
+            @"
+                _ _ _ _ _
+                _ _ p _ _
+                _ _ _ _ _
+                e _ _ _ _
+                _ _ _ _ _
+            ",
+            Player.Red,
+            1,
+            TestName = "Red Win, Red Perspective"
+        )]
+        public void ValueForPlayerIsAccurate(string layout, Player player, double? expected)
+        {
+            var board = new Board(layout);
+            var actual = board.ValueForPlayer(player);
 
             Assert.That(actual, Is.EqualTo(expected));
         }

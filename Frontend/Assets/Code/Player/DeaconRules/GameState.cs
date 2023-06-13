@@ -44,12 +44,12 @@ namespace Code.Player.DeaconRules
 
         public GameAction DefaultPolicy(IReadOnlyList<GameAction> actions)
         {
-            throw new System.NotImplementedException();
+            return actions[UnityEngine.Random.Range(0, actions.Count)];
         }
 
         public double? ValueForPlayer(Player player)
         {
-            throw new System.NotImplementedException();
+            return Board.ValueForPlayer(player);
         }
     }
 }
