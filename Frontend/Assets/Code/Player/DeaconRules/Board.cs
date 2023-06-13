@@ -22,7 +22,7 @@ namespace Code.Player.DeaconRules
             }
         );
 
-        private readonly Piece?[] pieces;
+        internal readonly Piece?[] pieces;
 
         // [0, 0] is top left of board
         // increasing x coordinates go toward the right
@@ -105,7 +105,7 @@ namespace Code.Player.DeaconRules
             }
         }
 
-        private Board(Piece?[] pieces)
+        internal Board(Piece?[] pieces)
         {
             this.pieces = pieces;
         }
@@ -154,7 +154,7 @@ namespace Code.Player.DeaconRules
             return pieces.GetHashCode();
         }
 
-        internal static void ApplyActionComponent(ref Piece?[] array, ActionComponent component)
+        internal static void ApplyActionComponent(Piece?[] array, ActionComponent component)
         {
             // ReSharper disable once PossibleInvalidOperationException
             Piece original = array[C(component.Origin)].Value;
@@ -174,8 +174,8 @@ namespace Code.Player.DeaconRules
         {
             var clone = (Piece?[])pieces.Clone();
 
-            ApplyActionComponent(ref clone, action.First);
-            ApplyActionComponent(ref clone, action.Second);
+            ApplyActionComponent(clone, action.First);
+            ApplyActionComponent(clone, action.Second);
 
             return new Board(clone);
         }
