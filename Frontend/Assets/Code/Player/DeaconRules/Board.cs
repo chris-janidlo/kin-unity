@@ -22,25 +22,25 @@ namespace Code.Player.DeaconRules
             }
         );
 
-        internal readonly Piece?[] pieces;
+        internal readonly byte[] pieces_packed;
 
         // [0, 0] is top left of board
         // increasing x coordinates go toward the right
         // increasing y coordinates go downward
-        public Piece? this[int x, int y] => pieces[C(x, y)];
-        public Piece? this[Vector2Int coordinate] => pieces[C(coordinate)];
+        public Piece? this[int x, int y] => Piece.Unpack(pieces_packed[C(x, y)]);
+        public Piece? this[Vector2Int coordinate] => this[coordinate.x, coordinate.y];
 
         public Board(IEnumerable<(int, int, Piece)> occupiedSpaces)
         {
-            pieces = new Piece?[DIMENSION * DIMENSION];
+            pieces_packed = new byte[DIMENSION * DIMENSION];
 
             foreach ((int x, int y, Piece piece) in occupiedSpaces)
-                pieces[x + y * DIMENSION] = piece;
+                pieces_packed[x + y * DIMENSION] = Piece.Pack(piece);
         }
 
         public Board(string layout)
         {
-            pieces = new Piece?[DIMENSION * DIMENSION];
+            pieces_packed = new byte[DIMENSION * DIMENSION];
 
             char TryParseCharFromString(string s)
             {
@@ -100,14 +100,14 @@ namespace Code.Player.DeaconRules
 
                     Player owner = char.IsUpper(c) ? Player.Blue : Player.Red;
 
-                    pieces[C(x, y)] = new Piece(form, owner);
+                    pieces_packed[C(x, y)] = Piece.Pack(new Piece(form, owner));
                 }
             }
         }
 
-        internal Board(Piece?[] pieces)
+        internal Board(byte[] pieces)
         {
-            this.pieces = pieces;
+            this.pieces_packed = pieces;
         }
 
         public override string ToString()
@@ -146,33 +146,33 @@ namespace Code.Player.DeaconRules
 
         public bool Equals(Board other)
         {
-            return pieces.SequenceEqual(other.pieces);
+            return pieces_packed.SequenceEqual(other.pieces_packed);
         }
 
         public override int GetHashCode()
         {
-            return pieces.GetHashCode();
+            return pieces_packed.GetHashCode();
         }
 
-        internal static void ApplyActionComponent(Piece?[] array, ActionComponent component)
+        internal static void ApplyActionComponent(byte[] array, ActionComponent component)
         {
             // ReSharper disable once PossibleInvalidOperationException
-            Piece original = array[C(component.Origin)].Value;
+            Piece original = Piece.Unpack(array[C(component.Origin)]).Value;
 
             var newPieceAtOrigin =
                 original.Movement.Interaction == Interaction.Swap
-                    ? array[C(component.Destination)]
+                    ? Piece.Unpack(array[C(component.Destination)])
                     : null;
 
             var newPieceAtDestination = new Piece(component.Transformation, original.Owner);
 
-            array[C(component.Origin)] = newPieceAtOrigin;
-            array[C(component.Destination)] = newPieceAtDestination;
+            array[C(component.Origin)] = Piece.Pack(newPieceAtOrigin);
+            array[C(component.Destination)] = Piece.Pack(newPieceAtDestination);
         }
 
         internal Board ApplyAction(GameAction action)
         {
-            var clone = (Piece?[])pieces.Clone();
+            var clone = (byte[])pieces_packed.Clone();
 
             ApplyActionComponent(clone, action.First);
             ApplyActionComponent(clone, action.Second);

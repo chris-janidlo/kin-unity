@@ -248,7 +248,7 @@ namespace Tests.Player.DeaconRules
         [TestCaseSource(nameof(ApplyActionComponentTestData))]
         public void ApplyActionComponentWorks(Board start, ActionComponent actionComponent, Board expected)
         {
-            var array = (Piece?[])start.pieces.Clone();
+            var array = (byte[])start.pieces_packed.Clone();
             Board.ApplyActionComponent(array, actionComponent);
             var actual = new Board(array);
             
