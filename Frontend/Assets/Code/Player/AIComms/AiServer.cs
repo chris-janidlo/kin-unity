@@ -1,14 +1,48 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
-using UnityEngine;
 
-namespace Kin.Player.AIComms
+namespace Code.Player.AIComms
 {
     public class AiServer : IDisposable
     {
+        private readonly int pid;
+        private int? port;
+
+        public AiServer()
+        {
+            int result = open_server();
+
+            if (result < 0)
+                throw new AiServerException(nameof(open_server), result);
+
+            pid = result;
+        }
+
+        public int Port
+        {
+            get
+            {
+                if (port.HasValue)
+                    return port.Value;
+
+                int result = get_tcp_port(pid);
+
+                if (result < 0)
+                    throw new AiServerException(nameof(get_tcp_port), result);
+
+                port = result;
+                return result;
+            }
+        }
+
+        public void Dispose()
+        {
+            int code = close_server(pid);
+
+            if (code < 0)
+                throw new AiServerException(nameof(close_server), code);
+        }
+
         // note that my first choice when implementing this was a finalizer, to not require
         // manual closing. however, the current implementation of `bootstrapper` uses
         // thread-local memory to store server PIDs, and finalizers are called in a separate
@@ -25,47 +59,9 @@ namespace Kin.Player.AIComms
         [DllImport("bootstrapper")]
         private static extern int close_server(int pid);
 
-        private int pid;
-        private int? port;
-
-        public int Port
-        {
-            get
-            {
-                if (port.HasValue)
-                    return port.Value;
-
-                var result = get_tcp_port(pid);
-
-                if (result < 0)
-                    throw new AiServerException(nameof(get_tcp_port), result);
-
-                port = result;
-                return result;
-            }
-        }
-
-        public AiServer()
-        {
-            var result = open_server();
-
-            if (result < 0)
-                throw new AiServerException(nameof(open_server), result);
-
-            pid = result;
-        }
-
-        public void Dispose()
-        {
-            var code = close_server(pid);
-
-            if (code < 0)
-                throw new AiServerException(nameof(close_server), code);
-        }
-
         public void IntentionallyError()
         {
-            var code = close_server(-69);
+            int code = close_server(-69);
 
             if (code < 0)
                 throw new AiServerException(nameof(close_server), code);

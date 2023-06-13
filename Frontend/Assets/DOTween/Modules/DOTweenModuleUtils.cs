@@ -47,9 +47,7 @@ namespace DG.Tweening
 #if UNITY_4_3 || UNITY_4_4 || UNITY_4_5 || UNITY_4_6 || UNITY_5 || UNITY_2017_1
             UnityEditor.EditorApplication.playmodeStateChanged += PlaymodeStateChanged;
 #else
-            UnityEditor
-                .EditorApplication
-                .playModeStateChanged += PlaymodeStateChanged;
+            UnityEditor.EditorApplication.playModeStateChanged += PlaymodeStateChanged;
 #endif
 #endif
         }

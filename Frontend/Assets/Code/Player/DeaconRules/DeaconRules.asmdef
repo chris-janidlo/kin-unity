@@ -1,0 +1,16 @@
+{
+    "name": "DeaconRules",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d16202b209d4d43b2993a1168d70ed5c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

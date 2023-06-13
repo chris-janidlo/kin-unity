@@ -1,9 +1,11 @@
 {
-    "name": "Tests.Player",
-    "rootNamespace": "Kin.Tests.Player",
+    "name": "MCTS-tests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "MCTS",
+        "crass.spellbook-unity.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
