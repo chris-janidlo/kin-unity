@@ -154,34 +154,6 @@ namespace Code.Player.DeaconRules
             return pieces_packed.GetHashCode();
         }
 
-        public double? ValueForPlayer(Player player)
-        {
-            // assumes 2-player zero-sum
-
-            bool selfAlive = false;
-            bool oppAlive = false;
-
-            foreach (var packed in pieces_packed)
-            {
-                if (!(Piece.Unpack(packed) is { } piece))
-                    continue;
-
-                if (piece.Owner == player)
-                {
-                    selfAlive = true;
-                }
-                else
-                {
-                    oppAlive = true;
-                }
-
-                if (selfAlive && oppAlive)
-                    return null;
-            }
-
-            return selfAlive ? 1 : -1;
-        }
-
         internal static void ApplyActionComponent(byte[] array, ActionComponent component)
         {
             // ReSharper disable once PossibleInvalidOperationException

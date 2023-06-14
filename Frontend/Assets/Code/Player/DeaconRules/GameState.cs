@@ -13,7 +13,7 @@ namespace Code.Player.DeaconRules
 
         private readonly Player toPlay;
 
-        private GameState(Board board, Player toPlay)
+        public GameState(Board board, Player toPlay)
         {
             Board = board;
             this.toPlay = toPlay;
@@ -49,7 +49,30 @@ namespace Code.Player.DeaconRules
 
         public double? ValueForPlayer(Player player)
         {
-            return Board.ValueForPlayer(player);
+            // assumes 2-player zero-sum
+
+            bool selfAlive = false;
+            bool oppAlive = false;
+
+            foreach (var packed in Board.pieces_packed)
+            {
+                if (!(Piece.Unpack(packed) is { } piece))
+                    continue;
+
+                if (piece.Owner == player)
+                {
+                    selfAlive = true;
+                }
+                else
+                {
+                    oppAlive = true;
+                }
+
+                if (selfAlive && oppAlive)
+                    return null;
+            }
+
+            return selfAlive ? 1 : -1;
         }
     }
 }
