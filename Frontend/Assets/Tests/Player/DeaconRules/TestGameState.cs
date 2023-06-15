@@ -9,7 +9,6 @@ namespace Tests.Player.DeaconRules
 
     public class TestGameState
     {
-
         [TestCase(
             @"
                 _ S _ _ _

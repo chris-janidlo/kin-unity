@@ -5,13 +5,11 @@ namespace Code.Player.DeaconRules
 {
     public readonly struct GameAction : IGameAction
     {
-        public readonly ActionComponent First;
-        public readonly ActionComponent Second;
+        public readonly ActionComponent[] Components;
 
-        public GameAction(ActionComponent first, ActionComponent second)
+        public GameAction(params ActionComponent[] components)
         {
-            First = first;
-            Second = second;
+            Components = components;
         }
     }
 

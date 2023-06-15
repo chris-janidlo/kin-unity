@@ -7,7 +7,7 @@ namespace Code.Player.MCTS
     public interface IGameState<TPlayer, out TState, TAction>
         where TPlayer : Enum
         where TState : struct, IGameState<TPlayer, TState, TAction>
-        where TAction : unmanaged, IGameAction
+        where TAction : struct, IGameAction
     {
         public int ActionArrayMaxSize { get; }
 

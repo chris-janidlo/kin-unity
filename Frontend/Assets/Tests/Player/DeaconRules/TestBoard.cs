@@ -259,6 +259,15 @@ namespace Tests.Player.DeaconRules
 
         private static IEnumerable<TestCaseData> ApplyGameActionTestData()
         {
+            foreach (var testCase in ApplyActionComponentTestData())
+            {
+                yield return new TestCaseData(
+                    testCase.Arguments[0],
+                    new GameAction((ActionComponent)testCase.Arguments[1]),
+                    testCase.Arguments[2]
+                ).SetName($"Single Component - {testCase.TestName}");
+            }
+
             yield return new TestCaseData(
                 new Board(
                     @"
@@ -357,7 +366,7 @@ namespace Tests.Player.DeaconRules
                     _ _ _ _ _
                 "
                 )
-            ).SetName("Basic Double Movement");
+            ).SetName("Swap Into Capture");
         }
 
         [TestCaseSource(nameof(ApplyGameActionTestData))]
