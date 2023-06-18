@@ -376,5 +376,74 @@ namespace Tests.Player.DeaconRules
 
             Assert.That(actual, Is.EqualTo(expected));
         }
+
+        private static IEnumerable<TestCaseData> SameBoardData()
+        {
+            yield return new TestCaseData(
+                @"
+                    _ _ _ _ _
+                    _ e _ _ _
+                    _ _ _ I _
+                    _ _ P _ _
+                    c _ _ _ _
+                "
+            );
+        }
+
+        private static IEnumerable<TestCaseData> DifferentBoardData()
+        {
+            yield return new TestCaseData(
+                @"
+                    _ _ _ _ _
+                    _ e _ _ _
+                    _ _ _ I _
+                    _ _ P _ _
+                    c _ _ _ _
+                ",
+                @"
+                    _ _ _ _ _
+                    _ E _ _ _
+                    _ _ _ i _
+                    _ _ P _ _
+                    c _ _ _ _
+                "
+            );
+        }
+
+        [TestCaseSource(nameof(SameBoardData))]
+        public void SameBoardsAreEqual(string layout)
+        {
+            var board1 = new Board(layout);
+            var board2 = new Board(layout);
+
+            Assert.That(board1, Is.EqualTo(board2));
+        }
+
+        [TestCaseSource(nameof(DifferentBoardData))]
+        public void DifferentBoardsAreNotEqual(string layout1, string layout2)
+        {
+            var board1 = new Board(layout1);
+            var board2 = new Board(layout2);
+
+            Assert.That(board1, Is.Not.EqualTo(board2));
+        }
+
+        [TestCaseSource(nameof(SameBoardData))]
+        public void SameBoardHashesToSameValue(string layout)
+        {
+            var board1 = new Board(layout);
+            var board2 = new Board(layout);
+
+            Assert.That(board1.GetHashCode(), Is.EqualTo(board2.GetHashCode()));
+        }
+
+        [TestCaseSource(nameof(DifferentBoardData))]
+        public void DifferentBoardsHashToDifferentValue(string layout1, string layout2)
+        {
+            var board1 = new Board(layout1);
+            var board2 = new Board(layout2);
+
+            Assert.That(board1.GetHashCode(), Is.Not.EqualTo(board2.GetHashCode()));
+        }
     }
 }

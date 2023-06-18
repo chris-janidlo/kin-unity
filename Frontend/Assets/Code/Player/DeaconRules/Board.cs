@@ -151,7 +151,14 @@ namespace Code.Player.DeaconRules
 
         public override int GetHashCode()
         {
-            return pieces_packed.GetHashCode();
+            return (
+                pieces_packed[0],
+                pieces_packed[1],
+                pieces_packed[3],
+                pieces_packed[7],
+                pieces_packed[13],
+                pieces_packed[17]
+            ).GetHashCode();
         }
 
         internal static void ApplyActionComponent(byte[] array, ActionComponent component)
