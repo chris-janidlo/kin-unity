@@ -84,7 +84,7 @@ namespace Tests.Player.DeaconRules
             Assert.That(parsed, Is.EqualTo(expected));
 
             var cleanedLayoutLines = layout
-                .Split(Environment.NewLine)
+                .Split("\n")
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(line =>
                 {
@@ -92,7 +92,7 @@ namespace Tests.Player.DeaconRules
                     return string.Join(" ", chars);
                 });
 
-            string cleanedLayout = string.Join(Environment.NewLine, cleanedLayoutLines);
+            string cleanedLayout = string.Join("\n", cleanedLayoutLines);
             Assert.That(parsed.ToString(), Is.EqualTo(cleanedLayout));
         }
 

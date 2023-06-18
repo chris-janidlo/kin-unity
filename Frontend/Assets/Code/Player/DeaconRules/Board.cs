@@ -56,7 +56,7 @@ namespace Code.Player.DeaconRules
             }
 
             char[][] chars = layout
-                .Split(Environment.NewLine)
+                .Split("\n")
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(line =>
                 {
