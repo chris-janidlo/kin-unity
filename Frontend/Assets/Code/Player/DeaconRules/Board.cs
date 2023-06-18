@@ -187,8 +187,9 @@ namespace Code.Player.DeaconRules
         {
             var clone = (byte[])pieces_packed.Clone();
 
-            foreach (var component in action.Components)
-                ApplyActionComponent(clone, component);
+            ApplyActionComponent(clone, action.First);
+            if (action.Second is { } second)
+                ApplyActionComponent(clone, second);
 
             return new Board(clone);
         }

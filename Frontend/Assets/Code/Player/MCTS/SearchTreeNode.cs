@@ -7,7 +7,7 @@ namespace Code.Player.MCTS
     internal class SearchTreeNode<TPlayer, TState, TAction>
         where TPlayer : Enum
         where TState : struct, IGameState<TPlayer, TState, TAction>
-        where TAction : unmanaged, IGameAction
+        where TAction : struct, IGameAction
     {
         public readonly List<ChildSearchTreeNode<TPlayer, TState, TAction>> Children;
 
@@ -118,7 +118,7 @@ namespace Code.Player.MCTS
         : SearchTreeNode<TPlayer, TState, TAction>
         where TPlayer : Enum
         where TState : struct, IGameState<TPlayer, TState, TAction>
-        where TAction : unmanaged, IGameAction
+        where TAction : struct, IGameAction
     {
         public TAction IncomingAction;
         public SearchTreeNode<TPlayer, TState, TAction> Parent;

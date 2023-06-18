@@ -4,8 +4,9 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
+        "crass.spellbook-unity.Runtime",
         "DeaconRules",
-        "crass.spellbook-unity.Runtime"
+        "MCTS"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

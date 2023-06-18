@@ -8,6 +8,8 @@ namespace Code.Player.DeaconRules
 {
     public readonly struct GameState : IGameState<Player, GameState, GameAction>
     {
+        public static readonly GameState INITIAL_STATE = new(Board.INITIAL, Player.Blue);
+
         public int ActionArrayMaxSize => 300; // TODO: find better bound for this
 
         public Board Board { get; }
@@ -46,11 +48,14 @@ namespace Code.Player.DeaconRules
                 }
             }
 
-            void Loop(Board workingBoard, Player toPlay, List<ActionComponent> components)
+            // assumes there can always either be 1 or 2 active pieces
+            bool onePiece = _GAA_ACTIVE_PIECES.Count == 1;
+
+            void Loop(Board workingBoard, Player toPlay, ActionComponent? first = null)
             {
                 foreach ((Vector2Int coord, MovementData movement) in _GAA_ACTIVE_PIECES)
                 {
-                    if (components.Count != 0 && coord == components[0].Origin) // note that FirstOrDefault is not safe to use here because ActionComponent is a value type
+                    if (first?.Origin == coord)
                         continue;
 
                     foreach (Vector2Int direction in movement.Directions)
@@ -88,26 +93,21 @@ namespace Code.Player.DeaconRules
                                     Board temp = workingBoard.Clone();
                                     Board.ApplyActionComponent(temp.pieces_packed, component);
 
-                                    if (components.Count == _GAA_ACTIVE_PIECES.Count - 1)
+                                    if (onePiece || first.HasValue)
                                     {
                                         if (_GAA_SEEN_BOARDS.Contains(temp))
                                             continue;
 
                                         _GAA_SEEN_BOARDS.Add(temp);
 
-                                        var componentsClone = ListPool<ActionComponent>.Get();
-                                        componentsClone.AddRange(components);
-                                        componentsClone.Add(component);
-
-                                        buffer.Add(new GameAction(componentsClone));
+                                        GameAction action = first is { } nonNull
+                                            ? new GameAction(nonNull, component)
+                                            : new GameAction(component);
+                                        buffer.Add(action);
                                     }
                                     else
                                     {
-                                        var componentsClone = ListPool<ActionComponent>.Get();
-                                        componentsClone.AddRange(components);
-                                        componentsClone.Add(component);
-
-                                        Loop(temp, toPlay, componentsClone);
+                                        Loop(temp, toPlay, component);
                                     }
                                 }
                             }
@@ -117,13 +117,9 @@ namespace Code.Player.DeaconRules
                         }
                     }
                 }
-
-                ListPool<ActionComponent>.Release(components);
             }
 
-            Loop(Board.Clone(), toPlay, ListPool<ActionComponent>.Get());
-
-            Debug.Log(buffer.Count);
+            Loop(Board.Clone(), toPlay);
         }
 
         public Player NextToPlay()
@@ -131,7 +127,6 @@ namespace Code.Player.DeaconRules
             return toPlay;
         }
 
-        // TODO: verify that this properly releases lists to pool
         public GameState ApplyAction(GameAction action)
         {
             Board newBoard = Board.ApplyAction(action);
@@ -142,25 +137,12 @@ namespace Code.Player.DeaconRules
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            ListPool<ActionComponent>.Release(action.Components);
-
             return new GameState(newBoard, newPlayer);
         }
 
-        // TODO: verify that this properly releases lists to pool
         public GameAction DefaultPolicy(IReadOnlyList<GameAction> actions)
         {
-            int chosenIndex = UnityEngine.Random.Range(0, actions.Count);
-
-            for (var i = 0; i < actions.Count; i++)
-            {
-                if (i == chosenIndex)
-                    continue;
-
-                ListPool<ActionComponent>.Release(actions[i].Components);
-            }
-
-            return actions[chosenIndex];
+            return actions[UnityEngine.Random.Range(0, actions.Count)];
         }
 
         public double? ValueForPlayer(Player player)

@@ -7,7 +7,7 @@ namespace Code.Player.MCTS
     public class Searcher<TPlayer, TState, TAction>
         where TPlayer : Enum
         where TState : struct, IGameState<TPlayer, TState, TAction>
-        where TAction : unmanaged, IGameAction
+        where TAction : struct, IGameAction
     {
         internal readonly SearchParameters DefaultParameters;
         internal SearchTreeNode<TPlayer, TState, TAction> Tree;
