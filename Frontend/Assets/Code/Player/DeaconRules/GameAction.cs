@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Code.Player.MCTS;
 using UnityEngine;
 
@@ -5,11 +6,16 @@ namespace Code.Player.DeaconRules
 {
     public readonly struct GameAction : IGameAction
     {
-        public readonly ActionComponent[] Components;
+        public readonly List<ActionComponent> Components;
+
+        public GameAction(List<ActionComponent> components)
+        {
+            Components = components;
+        }
 
         public GameAction(params ActionComponent[] components)
         {
-            Components = components;
+            Components = new List<ActionComponent>(components);
         }
     }
 

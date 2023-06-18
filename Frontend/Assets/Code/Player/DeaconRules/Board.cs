@@ -22,6 +22,7 @@ namespace Code.Player.DeaconRules
             }
         );
 
+        // TODO: move away from array since it incurs GC cost. need 25 (half)bytes of data, and could easily hardcode that
         internal readonly byte[] pieces_packed;
 
         // [0, 0] is top left of board
@@ -159,6 +160,11 @@ namespace Code.Player.DeaconRules
                 pieces_packed[13],
                 pieces_packed[17]
             ).GetHashCode();
+        }
+
+        public Board Clone()
+        {
+            return new Board((byte[])pieces_packed.Clone());
         }
 
         internal static void ApplyActionComponent(byte[] array, ActionComponent component)
