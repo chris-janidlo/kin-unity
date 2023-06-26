@@ -19,6 +19,8 @@ namespace Code.Player.DeaconRules
         private static readonly object _GAA_LOCK = new();
         private static readonly List<(Vector2Int, MovementData)> _GAA_ACTIVE_PIECES = new();
         private static readonly HashSet<Board> _GAA_SEEN_BOARDS = new();
+        internal static readonly Dictionary<(Board, Player), List<GameAction>> _GAA_CACHE = new();
+        internal static int cachehits = 0;
 
         public GameState(Board board, Player toPlay)
         {
@@ -34,6 +36,14 @@ namespace Code.Player.DeaconRules
 
         private void GetAvailableActionsThreadUnsafe(IList<GameAction> buffer)
         {
+            if (_GAA_CACHE.GetValueOrDefault((Board, toPlay)) is { } list)
+            {
+                cachehits++;
+                foreach (var action in list) buffer.Add(action);
+
+                return;
+            }
+
             _GAA_ACTIVE_PIECES.Clear();
             _GAA_SEEN_BOARDS.Clear();
 
@@ -121,6 +131,8 @@ namespace Code.Player.DeaconRules
             }
 
             Loop(Board, toPlay);
+
+            _GAA_CACHE[(Board, toPlay)] = new List<GameAction>(buffer);
         }
 
         public Player NextToPlay()
