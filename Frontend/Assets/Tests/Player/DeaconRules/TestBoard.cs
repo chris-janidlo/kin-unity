@@ -250,8 +250,8 @@ namespace Tests.Player.DeaconRules
             Board expected
         )
         {
-            var array = (byte[])start.pieces_packed.Clone();
-            Board.ApplyActionComponent(array, actionComponent);
+            Board.Array array = start.pieces_packed;
+            Board.ApplyActionComponent(ref array, actionComponent);
             var actual = new Board(array);
 
             Assert.That(actual, Is.EqualTo(expected));

@@ -90,8 +90,9 @@ namespace Code.Player.DeaconRules
                                         transformation
                                     );
 
-                                    Board temp = workingBoard.Clone();
-                                    Board.ApplyActionComponent(temp.pieces_packed, component);
+                                    Board.Array piecesPacked = workingBoard.pieces_packed;
+                                    Board.ApplyActionComponent(ref piecesPacked, component);
+                                    var temp = new Board(piecesPacked);
 
                                     if (onePiece || first.HasValue)
                                     {
@@ -119,7 +120,7 @@ namespace Code.Player.DeaconRules
                 }
             }
 
-            Loop(Board.Clone(), toPlay);
+            Loop(Board, toPlay);
         }
 
         public Player NextToPlay()
@@ -152,8 +153,10 @@ namespace Code.Player.DeaconRules
             var selfAlive = false;
             var oppAlive = false;
 
-            foreach (byte packed in Board.pieces_packed)
+            for (var i = 0; i < Board.pieces_packed.Length; i++)
             {
+                byte packed = Board.pieces_packed[i];
+
                 if (Piece.Unpack(packed) is not { } piece)
                     continue;
 

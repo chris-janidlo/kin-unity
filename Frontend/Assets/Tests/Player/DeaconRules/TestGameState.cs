@@ -4116,7 +4116,7 @@ namespace Tests.Player.DeaconRules
             var actions = new List<GameAction>();
             state.GetAvailableActions(actions);
 
-            var actual = actions.Select(a => state.Board.Clone().ApplyAction(a)).ToList();
+            var actual = actions.Select(a => state.Board.ApplyAction(a)).ToList();
 
             Assert.That(actual, Has.Count.EqualTo(expected.Count));
 

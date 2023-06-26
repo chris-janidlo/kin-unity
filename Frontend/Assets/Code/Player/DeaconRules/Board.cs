@@ -22,8 +22,164 @@ namespace Code.Player.DeaconRules
             }
         );
 
-        // TODO: move away from array since it incurs GC cost. need 25 (half)bytes of data, and could easily hardcode that
-        internal readonly byte[] pieces_packed;
+        public struct Array
+        {
+            private byte zero;
+            private byte one;
+            private byte two;
+            private byte three;
+            private byte four;
+            private byte five;
+            private byte six;
+            private byte seven;
+            private byte eight;
+            private byte nine;
+            private byte ten;
+            private byte eleven;
+            private byte twelve;
+            private byte thirteen;
+            private byte fourteen;
+            private byte fifteen;
+            private byte sixteen;
+            private byte seventeen;
+            private byte eighteen;
+            private byte nineteen;
+            private byte twenty;
+            private byte twentyOne;
+            private byte twentyTwo;
+            private byte twentyThree;
+            private byte twentyFour;
+
+            public int Length => DIMENSION * DIMENSION;
+
+            public byte this[int i]
+            {
+                get =>
+                    i switch
+                    {
+                        0 => zero,
+                        1 => one,
+                        2 => two,
+                        3 => three,
+                        4 => four,
+                        5 => five,
+                        6 => six,
+                        7 => seven,
+                        8 => eight,
+                        9 => nine,
+                        10 => ten,
+                        11 => eleven,
+                        12 => twelve,
+                        13 => thirteen,
+                        14 => fourteen,
+                        15 => fifteen,
+                        16 => sixteen,
+                        17 => seventeen,
+                        18 => eighteen,
+                        19 => nineteen,
+                        20 => twenty,
+                        21 => twentyOne,
+                        22 => twentyTwo,
+                        23 => twentyThree,
+                        24 => twentyFour,
+                        _
+                            => throw new ArgumentOutOfRangeException(
+                                nameof(i),
+                                i,
+                                $"{nameof(Board)} {nameof(Array)}s have {Length} members"
+                            )
+                    };
+                set
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            zero = value;
+                            break;
+                        case 1:
+                            one = value;
+                            break;
+                        case 2:
+                            two = value;
+                            break;
+                        case 3:
+                            three = value;
+                            break;
+                        case 4:
+                            four = value;
+                            break;
+                        case 5:
+                            five = value;
+                            break;
+                        case 6:
+                            six = value;
+                            break;
+                        case 7:
+                            seven = value;
+                            break;
+                        case 8:
+                            eight = value;
+                            break;
+                        case 9:
+                            nine = value;
+                            break;
+                        case 10:
+                            ten = value;
+                            break;
+                        case 11:
+                            eleven = value;
+                            break;
+                        case 12:
+                            twelve = value;
+                            break;
+                        case 13:
+                            thirteen = value;
+                            break;
+                        case 14:
+                            fourteen = value;
+                            break;
+                        case 15:
+                            fifteen = value;
+                            break;
+                        case 16:
+                            sixteen = value;
+                            break;
+                        case 17:
+                            seventeen = value;
+                            break;
+                        case 18:
+                            eighteen = value;
+                            break;
+                        case 19:
+                            nineteen = value;
+                            break;
+                        case 20:
+                            twenty = value;
+                            break;
+                        case 21:
+                            twentyOne = value;
+                            break;
+                        case 22:
+                            twentyTwo = value;
+                            break;
+                        case 23:
+                            twentyThree = value;
+                            break;
+                        case 24:
+                            twentyFour = value;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(
+                                nameof(i),
+                                i,
+                                $"{nameof(Board)} {nameof(Array)}s have {Length} members"
+                            );
+                    }
+                }
+            }
+        }
+
+        internal readonly Array pieces_packed;
 
         // [0, 0] is top left of board
         // increasing x coordinates go toward the right
@@ -33,7 +189,7 @@ namespace Code.Player.DeaconRules
 
         public Board(IEnumerable<(int, int, Piece)> occupiedSpaces)
         {
-            pieces_packed = new byte[DIMENSION * DIMENSION];
+            pieces_packed = new();
 
             foreach ((int x, int y, Piece piece) in occupiedSpaces)
                 pieces_packed[x + y * DIMENSION] = Piece.Pack(piece);
@@ -41,7 +197,7 @@ namespace Code.Player.DeaconRules
 
         public Board(string layout)
         {
-            pieces_packed = new byte[DIMENSION * DIMENSION];
+            pieces_packed = new();
 
             char TryParseCharFromString(string s)
             {
@@ -106,9 +262,9 @@ namespace Code.Player.DeaconRules
             }
         }
 
-        internal Board(byte[] pieces)
+        internal Board(Array pieces)
         {
-            this.pieces_packed = pieces;
+            pieces_packed = pieces;
         }
 
         public override string ToString()
@@ -147,7 +303,13 @@ namespace Code.Player.DeaconRules
 
         public bool Equals(Board other)
         {
-            return pieces_packed.SequenceEqual(other.pieces_packed);
+            for (var i = 0; i < pieces_packed.Length; i++)
+            {
+                if (pieces_packed[i] != other.pieces_packed[i])
+                    return false;
+            }
+
+            return true;
         }
 
         public override int GetHashCode()
@@ -162,12 +324,7 @@ namespace Code.Player.DeaconRules
             ).GetHashCode();
         }
 
-        public Board Clone()
-        {
-            return new Board((byte[])pieces_packed.Clone());
-        }
-
-        internal static void ApplyActionComponent(byte[] array, ActionComponent component)
+        internal static void ApplyActionComponent(ref Array array, ActionComponent component)
         {
             // ReSharper disable once PossibleInvalidOperationException
             Piece original = Piece.Unpack(array[C(component.Origin)]).Value;
@@ -185,11 +342,11 @@ namespace Code.Player.DeaconRules
 
         internal Board ApplyAction(GameAction action)
         {
-            var clone = (byte[])pieces_packed.Clone();
+            Array clone = pieces_packed; // TODO: verify that this works
 
-            ApplyActionComponent(clone, action.First);
+            ApplyActionComponent(ref clone, action.First);
             if (action.Second is { } second)
-                ApplyActionComponent(clone, second);
+                ApplyActionComponent(ref clone, second);
 
             return new Board(clone);
         }
